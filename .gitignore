@@ -105,3 +105,11 @@ InitTestScene*.unity*
 
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
+
+# ---------------------------------------------------------------------------
+# Project-specific additions (not part of the upstream template)
+# ---------------------------------------------------------------------------
+
+# Unity regenerates the .slnx solution together with the *.csproj files that
+# are already ignored above, so it churns and can end up referencing nothing.
+*.slnx
