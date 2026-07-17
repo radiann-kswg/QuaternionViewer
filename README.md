@@ -21,10 +21,13 @@ git clone https://github.com/radiann-kswg/QuaternionViewer.git
 
 | パス | 内容 |
 | --- | --- |
-| `Assets/QuaternionViewer/` | 本プロジェクト固有のアセット(モデル等) |
+| `Assets/QuaternionViewer/` | 本プロジェクト固有のアセット(Unityが取り込むモデル等) |
 | `Assets/Settings/` | レンダリング設定(URP) |
+| `Art/` | DCCツールのソースファイル(`.blend` 等)。`Assets/` 外に置き、Unityの取り込み対象から外している |
 | `AGENTS.md` | AIエージェント設定の単一情報源(SSOT) |
 | `docs/agents/` | ロールプレイプロンプト |
+
+モデルは `Art/` の `.blend` をソースとし、そこから書き出した `.fbx` を `Assets/` に配置します。`.blend` を `Assets/` 内に置くとUnityが二重に取り込むため、ソースは `Assets/` 外に置いてください。
 
 ## AIエージェント設定
 
