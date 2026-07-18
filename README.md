@@ -3,6 +3,11 @@
 クォータニオン(回転姿勢)の仕組みを、地球儀のように直感的・視覚的に確認できるUnityシーンです。
 「クォータニオン回転姿勢について知ろうの会」のための学習・可視化プロジェクトとして開発しています。
 
+> [!NOTE]
+> **アルファ版(開発初期)** ― 現在 **Ch.1「軸と角」**までを実装しています。動作するもの: 三層の儀(内核=サイコロ等 / 中殻=S² 地球儀 / 外殻=回転空間ボール)、情報パネル、章演出デモ(半角・ジンバル・補間)、**解説モード**(台本駆動のステップ送り。Ch.1)、自由探索(アークボール操作)。自前の四元数数学ライブラリは EditMode テストで Unity との一致を検証しています。Ch.2〜6 と一部の計器(角度ゲージ等)は開発中です。
+>
+> 関連文書: 設計仕様 [`docs/spec.md`](docs/spec.md) / 解説モードの設計・台本 [`docs/section-guide.md`](docs/section-guide.md) / 儀なしで通読できる配布資料 [`docs/handout-quaternion.md`](docs/handout-quaternion.md)。
+
 ## 動作環境
 
 - Unity 6 (6000.x)
@@ -21,9 +26,17 @@ git clone https://github.com/radiann-kswg/QuaternionViewer.git
 
 | パス | 内容 |
 | --- | --- |
-| `Assets/QuaternionViewer/` | 本プロジェクト固有のアセット(Unityが取り込むモデル等) |
+| `Assets/Scenes/QuaternionGlobe.unity` | 本編シーン(三層の儀 + 情報パネル + 解説モード) |
+| `Assets/QuaternionViewer/Scripts/` | `Core/`(自前の四元数数学)/ `Visualization/`(三層の可視化)/ `UI/`(情報パネル・グラフ・解説バー)/ `Chapters/`(解説モード)/ `Input/`(アークボール) |
+| `Assets/QuaternionViewer/Models/` | 内核モデルの `.fbx`(ソースは `Art/` の `.blend`。すべて自作) |
+| `Assets/QuaternionViewer/Resources/Fonts/` | 同梱ピクセルフォント(**第三者製・MIT対象外**。後述) |
+| `Assets/QuaternionViewer/Resources/Guide/` | 解説モードの章台本(画面用転記。正典は `docs/section-guide.md` §4) |
+| `Assets/QuaternionViewer/Tests/EditMode/` | EditMode テスト(数学ライブラリ・入力・解説パーサ) |
 | `Assets/Settings/` | レンダリング設定(URP) |
 | `Art/` | DCCツールのソースファイル(`.blend` 等)。`Assets/` 外に置き、Unityの取り込み対象から外している |
+| `docs/spec.md` | 数理設計・画面演出の仕様(設計の正典) |
+| `docs/section-guide.md` | 解説・図解モードの設計＋全6章の台本 |
+| `docs/handout-quaternion.md` | 儀なしで通読できる配布ハンドアウト |
 | `AGENTS.md` | AIエージェント設定の単一情報源(SSOT) |
 | `docs/agents/` | ロールプレイプロンプト |
 
@@ -39,11 +52,11 @@ Unityエディタの操作は、Unity公式MCPサーバ経由で行います(`.m
 ## ライセンス
 
 > [!IMPORTANT]
-> 本リポジトリには **2つのライセンスが併存** します。利用前に必ず適用範囲をご確認ください。
+> 本リポジトリは、本プロジェクト自身の成果物について **2つのライセンスが併存**(コード・Unityプロジェクト = MIT / キャラクター設定 = CC BY-NC 4.0)します。加えて、**同梱する第三者アセット(ピクセルフォント)は各自のライセンス**に従います(「第三者コンポーネントの表示」参照)。利用前に必ず適用範囲をご確認ください。
 
 ### コード・Unityプロジェクト → MIT
 
-[`LICENSE`](LICENSE) (MIT) の対象は、本プロジェクトのソースコードおよびUnityプロジェクト構成です(`Assets/QuaternionViewer/`、`Assets/Settings/`、`ProjectSettings/` など)。
+[`LICENSE`](LICENSE) (MIT) の対象は、本プロジェクトのソースコード・Unityプロジェクト構成・**自作の3Dモデル**です(`Assets/QuaternionViewer/`〔`Models/` の `.fbx` を含む〕、`Assets/Settings/`、`ProjectSettings/`、`Art/` の `.blend` ソース など)。内核モデル(Dice / NineBall / OctantSphere / Knight)はいずれも本プロジェクトが Blender で制作した自作物です。ただし後述の**同梱フォントとキャラクター設定は MIT の対象外**です。
 
 ### ナンバーテールズのキャラクター設定 → CC BY-NC 4.0(非営利限定)
 
@@ -60,6 +73,7 @@ Unityエディタの操作は、Unity公式MCPサーバ経由で行います(`.m
 
 | 対象 | 出典 | ライセンス |
 | --- | --- | --- |
+| 同梱ピクセルフォント `Resources/Fonts/*.ttf`(マルモニカ / スキャンライン) | 患者長ひっく(hicc) — [x0y0pxFreeFont](https://hicchicc.github.io/00ff/) | 独自条項(商用可・改変可・クレジット不要・**単体販売禁止**)。**MIT対象外**。全文 → [`x0y0pxFreeFont-NOTICE.md`](Assets/QuaternionViewer/Resources/Fonts/x0y0pxFreeFont-NOTICE.md) |
 | `.gitignore` | [github/gitignore](https://github.com/github/gitignore) — `Unity.gitignore` | CC0-1.0 |
 | `.gitattributes` | [gitattributes/gitattributes](https://github.com/gitattributes/gitattributes) — `Unity.gitattributes` | MIT |
 | Unityテンプレート由来のアセット・Unityパッケージ | Unity Technologies (URPテンプレート / Unity Registry) | Unity Companion License 等、各パッケージの条件に従う |
