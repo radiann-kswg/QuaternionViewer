@@ -75,7 +75,45 @@
 ### 残り(UI周り)
 - ChapterNavigator(章切替。Chapters/ 実装と同時に)
 - GraphPlotter(Painter2D。角速度 / |q|−1 グラフ)
-- パネルの右上配置オプション・折りたたみ等の磨き込みは章UIと合わせて
+- パネルの折りたたみ等の磨き込みは章UIと合わせて
+
+---
+
+## 追記2 (同日・Prefab化+モデル切替)
+
+### Prefab 化
+- `Assets/QuaternionViewer/Prefabs/` に **Core.prefab / Globe.prefab / RotationSpaceBall.prefab**(SaveAsPrefabAssetAndConnect でシーンインスタンスと接続維持)
+- Globe/Ball のワイヤ・マーカー・軌跡は HideFlags.DontSave の実行時生成物のため **Prefab にもシーンにも入らない**(コンポーネント+設定値のみが資産)
+- `source` 参照(シーン上の RotationSource)はインスタンス側オーバーライド。Prefab を別シーンで使う際は結線し直すこと
+
+### 内核モデル切替 (Dice / NineBall / OctantSphere / Knight)
+- `Scripts/Visualization/CoreModelSwitcher.cs`: Core直下の標本4体を常に1体だけアクティブ化(ExecuteAlways、OnValidate対応)
+- `Scripts/UI/ModelSwitcherUI.cs`: 画面右上のボタン列UI(アクティブは青ハイライト)。シーンに `ModelSwitcherUI` GO 追加
+- 全標本は 1m・中心原点・TRS恒等で統一されており切替で姿勢の読みは不変。**Knight.fbx の .meta は本セッションの AssetDatabase.Refresh で生成済み**(前回保留は解消。コミット可)
+- 切替検証済み: 全indexで「アクティブは常に1体」、オクタント球で軸角の目視確認良好
+
+### 配置調整 (960x540)
+- RotationSpaceBall: (3.0,0,0) → **(3.3, 0, 0)**(右端の窮屈さ解消)、Main Camera: z=-6 → **-5.75**(全体をわずかに拡大)
+- 画面構成: 左上=情報パネル / 中央=内核+中殻 / 右=外殻 / 右上=モデル切替ボタン
+
+---
+
+## 追記3 (同日・Knightカメラ混入の解決+レイヤー識別)
+
+### Knight.fbx のカメラ/ライト混入 (解決)
+- **症状**: 内核を Knight に切り替えると Game ビューの画角が変わる。
+- **真因**: Knight.fbx に Blender のカメラ+ポイントライトが同梱されており、アクティブ化と同時に有効なカメラとして Game ビューを乗っ取っていた。
+- **対処(二重)**: ①ユーザーが Art/Knight.blend からカメラ・ライトを削除 → Desktop が Blender ブリッジ経由で保存+Dice同一設定でFBX再書き出し(41KB→29KB)。②Unity 側で **全4モデルの ModelImporter の Import Cameras / Import Lights を無効化**(再発防止)。
+- Core 配下のカメラ/ライトは 0 を確認。**Knight の正面 = +Z も検証済み**(RIGHTビューで鼻先が+Z方向)。
+
+### レイヤー識別の改善 (「儀が2つ見える」対策)
+- 外殻グリッドを寒色 (0.30, 0.42, 0.62) に変更し、中殻の中間灰グリッドと見分けられるように。
+- `Scripts/UI/LayerCaptionsUI.cs` 新規: 中殻・外殻の足元に追従キャプション(WorldToPanel投影)。
+  - 中殻: "CORE + S² GLOBE — axis n & angle θ"
+  - 外殻: "ROTATION SPACE BALL — q as a point (RP³)"
+- 画面構成(960x540): 左上=情報パネル / 右上=モデル切替 / 中央=内核+中殻(同心) / 右=外殻。**中殻と外殻は別の数学的空間**(S²=軸の住処 / RP³模型=qの住処)であり、仕様4.3の決定通り外殻は脇配置。
+
+> **編集事故の記録**: 本追記3のコミット時、Desktop 側が c500e94 時点の末尾「✅ 突き合わせ結果」節を誤って上書き消去した(並行編集のすれ違い)。下記の同節は git (c500e94) から復元して再掲したもの。**教訓: `.wip` の共有ファイルへ書く前に必ずディスク側の最新を再取得すること。**
 
 ---
 
