@@ -14,6 +14,10 @@
 | 供され方 | **単独利用**(提督/開発者本人)。PC standalone および Unityエディタ上での実行を想定 |
 | 座標系 | **Unity左手系 Y-up に準拠**。回転の正の向きは**左ねじ** |
 | 四元数実装 | **自前 `Quat` 型を主**とし、Unity `Quaternion` との一致を EditMode テストで検証 |
+| 本編シーン名 | **`QuaternionGlobe`**(`Assets/Scenes/QuaternionGlobe.unity`。`SampleScene` は雛形として残置) |
+| UIフレームワーク | **UI Toolkit**(UIDocument + PanelSettings) |
+| グラフ描画 | **UI Toolkit の Painter2D**(`generateVisualContent` によるカスタム描画) |
+| 正準形の扱い | **Core は畳まない**。表示層が章ごとに選ぶ(Ch.2 のみ生の -q を見せる)。3.6-I 参照 |
 
 ### スコープ外(明示的に作らないもの)
 
@@ -137,6 +141,86 @@ $$q = \mathrm{normalize}\left(1 + \mathbf{p}_0 \cdot \mathbf{p}_1,\; \mathbf{p}_
 とする。導出: $(1 + \cos\theta,\; \sin\theta\,\mathbf{a}) = 2\cos\tfrac{\theta}{2}\left(\cos\tfrac{\theta}{2},\; \sin\tfrac{\theta}{2}\mathbf{a}\right)$。
 
 **掴んだ点がカーソルに追従する**この $\theta$ 版を採用する(地球儀の手触りと一致するため)。Shoemake 原典の $2\theta$ 版 $q = (\mathbf{p}_0 \cdot \mathbf{p}_1,\; \mathbf{p}_0 \times \mathbf{p}_1)$ は採らない。
+
+### 3.6 内部数学ライブラリ (Core 拡張)
+
+可視化層(4章)と章演出(5章)が参照する補助定義。実装は `QuatMath` の拡張と、新規の 3×3 行列型 `Mat3.cs` に置く。すべて2章の規約下で成立し、6.3 と同様に **Unity との一致・数値健全性(NaN を出さない)をテストで担保する**。
+
+#### A. 回転行列 ToMatrix / `Mat3`
+
+単位四元数 $q = (w, \mathbf{v})$、列ベクトル規約 $\mathbf{v}' = R\mathbf{v}$ に対し
+
+$$R(q) = \begin{pmatrix} 1-2(y^2+z^2) & 2(xy-wz) & 2(xz+wy) \\ 2(xy+wz) & 1-2(x^2+z^2) & 2(yz-wx) \\ 2(xz-wy) & 2(yz+wx) & 1-2(x^2+y^2) \end{pmatrix}$$
+
+$R\mathbf{v} = q \otimes \tilde{\mathbf{v}} \otimes q^{*}$ と一致すること、$R \in SO(3)$($R^{\mathsf T}R = I$、$\det R = +1$)をテストで検証する。`Mat3` は `readonly struct`・行優先格納で、積・転置・行列式・トレースのみを持つ最小型とする(4.4 の行列表示と F のヤコビアンが使う)。
+
+#### B. FromToRotation
+
+単位ベクトル $\mathbf{a}$ を $\mathbf{b}$ へ移す最短回転。3.5 のアークボールと同形の
+
+$$q = \mathrm{normalize}\left(1 + \mathbf{a}\cdot\mathbf{b},\; \mathbf{a}\times\mathbf{b}\right)$$
+
+とする。退化 $\mathbf{a} \approx -\mathbf{b}$($1 + \mathbf{a}\cdot\mathbf{b} \to 0$)では回転軸が一意に定まらないため、$\mathbf{a}$ に直交する軸 $\mathbf{m}$($\mathbf{a}$ の絶対値最小成分の基底との外積から取る)を選び $q = (0, \mathbf{m})$(180°回転)へ退避する。これは除去可能特異点ではなく**軸の選択が本質的に任意**な縮退である点に注意(Ch.5 の対蹠と同根)。
+
+#### C. 姿勢間距離 Angle
+
+$SO(3)$ 上の測地距離
+
+$$\theta(q_0, q_1) = 2\arccos\left(\left|\langle q_0, q_1 \rangle\right|\right) \in [0, \pi]$$
+
+内積の**絶対値**が二重被覆の折り畳みであり、これにより $\theta(q, -q) = 0$ が保証される。Unity の `Quaternion.Angle` と一致すること(テスト)。
+
+#### D. 回転ベクトル RotationVector
+
+$$\mathbf{r} = \theta\,\mathbf{n}, \qquad \theta = 2\,\mathrm{atan2}(|\mathbf{v}|, w) \in [0, 2\pi]$$
+
+逆変換は $\mathrm{FromRotationVector}(\mathbf{r}) = \exp(\tilde{\mathbf{r}}/2)$(3.1 の指数写像)。外殻の回転ベクトル模型 $\mathbf{p} = \theta\mathbf{n}/\pi$(4.3)はこの $\mathbf{r}$ を $\pi$ で割ったもの。$\theta > \pi$ の折り返し(正準化)は Core では行わず、表示層が I で選ぶ。
+
+#### E. 鏡映 Reflect / ReflectionPair
+
+単位法線 $\mathbf{m}$ の平面鏡映は $\mathbf{v}' = \mathbf{v} - 2(\mathbf{v}\cdot\mathbf{m})\mathbf{m}$。**回転は二つの鏡映の合成**であり、法線が角 $\varphi$ で交わる二枚の鏡 $\mathbf{m}_1 \to \mathbf{m}_2$ の合成は、軸 $\mathbf{m}_1\times\mathbf{m}_2$ 方向・角 $2\varphi$ の回転になる。Ch.1 の半角演示(5.1)用に
+
+$$\mathrm{ReflectionPair}(\mathbf{n}, \theta):\quad \mathbf{m}_1 = \hat{\mathbf{g}}_0,\qquad \mathbf{m}_2 = \mathrm{rot}(\mathbf{n}, \theta/2)\,\mathbf{m}_1$$
+
+($\hat{\mathbf{g}}_0$ は 4.2 のゼロ基準)を返す。$\mathbf{m}_1$ 鏡映を先、$\mathbf{m}_2$ 鏡映を後に合成した作用が $\mathrm{FromAxisAngle}(\mathbf{n}, \theta)$ と一致すること(テスト)―― **鏡を $\theta/2$ で交わらせると像が $\theta$ 回る**。これが半角の根拠の実体である。
+
+#### F. オイラー角速度ヤコビアン EulerRateJacobian
+
+ZXY 規約(2.5)で、オイラー角速度 $(\dot{p}, \dot{y}, \dot{r})$(pitch, yaw, roll)をワールド系角速度 $\boldsymbol{\omega}$ へ写す行列 $E$:
+
+$$\boldsymbol{\omega} = E \begin{pmatrix}\dot{p}\\\dot{y}\\\dot{r}\end{pmatrix}, \qquad E = \Big(\; R_y(y)\,\hat{\mathbf{x}} \;\Big|\; \hat{\mathbf{y}} \;\Big|\; R_y(y)R_x(p)\,\hat{\mathbf{z}} \;\Big)$$
+
+各列は「その段の回転軸が、より外側の段によってワールドへ運ばれた先」である。行列式は
+
+$$\det E = \cos(\text{pitch})$$
+
+$\text{pitch} = \pm 90°$ では pitch 回転が roll 軸 $\hat{\mathbf{z}}$ を $\mp\hat{\mathbf{y}}$ へ倒すため、**第2列(yaw 軸)と第3列(roll 軸)が平行**になり $\mathrm{rank}\,E = 2$ へ落ちる(3.4)―― ジンバルの絵で言えば「外環(yaw)と内環(roll)の回転軸が揃う」である。検証は (1) $\det E \approx \cos p$、(2) 数値微分した $\boldsymbol{\omega}_{\text{num}} = \frac{2}{h}\log\!\big(q(t+h)\otimes q(t)^{*}\big)$ との一致、(3) ロック点での第2・第3列の平行性、の三本で行う。
+
+#### G. ジンバル段 GimbalStages
+
+Ch.4 の3重リング(5.4)が各環の姿勢に使う累積回転:
+
+$$q_{\text{outer}} = q_y, \qquad q_{\text{middle}} = q_y \otimes q_x, \qquad q_{\text{inner}} = q_y \otimes q_x \otimes q_z$$
+
+$q_{\text{inner}} = \mathrm{FromEuler}(p, y, r)$ と一致すること(テスト)。外環=yaw、中環=pitch、内環=roll を担い、$\text{pitch} \to \pm 90°$ で外環と内環の回転軸が同一平面に縮退する様が $\det E \to 0$ の幾何的実体である。
+
+#### H. オイラー角補間 EulerInterp / 角速度計測 AngularSpeed
+
+Ch.5 の三体比較(5.5)用。オイラー角補間は成分ごとの最短差分線形補間
+
+$$\mathbf{e}(t) = \mathbf{e}_0 + t\,\mathrm{wrap}(\mathbf{e}_1 - \mathbf{e}_0), \qquad \mathrm{wrap}: \to (-\pi, \pi]$$
+
+を `FromEuler` に通す。角速度計測は隣接サンプル $q(t), q(t+\Delta t)$ から
+
+$$|\boldsymbol{\omega}| \approx \frac{2\,\big|\log\!\big(q(t)^{*} \otimes q(t+\Delta t)\big)\big|}{\Delta t}$$
+
+(符号は $\langle q(t), q(t+\Delta t)\rangle < 0$ のとき折り返す)。Slerp 曲線でのみ一定になること(テスト)。
+
+#### I. 正準形 Canonical
+
+$$\mathrm{Canonical}(q) = \begin{cases} q & (w > 0) \\ -q & (w < 0) \\ \text{v の先頭非零成分が正になる側} & (w = 0) \end{cases}$$
+
+**Core は演算結果を勝手に畳まない**(決定)。畳むか否かは表示層が章ごとに選ぶ ―― Ch.2 は二重被覆を見せるために**生の $-q$** を表示し、Ch.4 のオイラー角表示などは Canonical を通してよい。
 
 ---
 
@@ -262,9 +346,12 @@ $w$ の符号は**色**で表す($w \ge 0$ 暖色 / $w < 0$ 寒色)。$q$ と $-
 Assets/QuaternionViewer/Scripts/
   Core/
     Quat.cs                 自前四元数 (readonly struct, 格納順 x,y,z,w)
-    QuatMath.cs             exp / log / slerp / nlerp / 軸角 / オイラー角
+    QuatMath.cs             exp / log / slerp / nlerp / 軸角 / オイラー角 / 3.6 A〜I
+    Mat3.cs                 3×3行列 (readonly struct, 行優先。3.6-A/F と 4.4 行列表示用)
     RotationIntegrator.cs   dq/dt = ½ωq, Euler法 / RK4
   Visualization/
+    RotationSource.cs       現在姿勢 q の保持・配布 (章コントローラ/入力が書き、可視化層が読む)
+    WireGeometry.cs         緯線・経線・円弧のLineRenderer生成ヘルパ (中殻・外殻で共用)
     DiceRig.cs              内核: サイコロ + ボディ軸
     AxisAngleGlobe.cs       中殻: S²グリッド + 極 + 掃き円弧
     RotationSpaceBall.cs    外殻: ボール模型 + 軌跡 + 対蹠ワープ
@@ -280,10 +367,11 @@ Assets/QuaternionViewer/Scripts/
     Ch1_AxisAngle.cs 〜 Ch6_AngularVelocity.cs
 
 Assets/QuaternionViewer/Tests/EditMode/
-    QuatMathTests.cs        Unity Quaternion との一致検証
+    QuatMathTests.cs            Unity Quaternion との一致検証 (2章の規約)
+    QuatMathExtendedTests.cs    3.6 内部数学ライブラリ A〜I の検証
 ```
 
-シーンは `Assets/Scenes/` 配下。既存 [SampleScene.unity](../Assets/Scenes/SampleScene.unity) は雛形として扱い、本編シーンは別途作成する。
+シーンは `Assets/Scenes/` 配下。本編シーンは **`QuaternionGlobe.unity`**(決定)。既存 [SampleScene.unity](../Assets/Scenes/SampleScene.unity) は雛形として残置する。
 
 ### 6.2 自前実装の方針
 
@@ -309,6 +397,20 @@ Unity 組み込み `Quaternion` は内部が不可視で、`Slerp` の中身も 
 | exp/log 往復 | `exp(log(q)) == q`(単位四元数、$|\mathbf{v}| \to 0$ の縮退近傍を含む) |
 | 除去可能特異点 | $\Omega \to 0$、$|\mathbf{v}| \to 0$ で `NaN` を出さない |
 
+上表は `QuatMathTests.cs`(2章の規約検証)に対応する。**3.6 の内部数学ライブラリ A〜I も同格でテスト化する**(`QuatMathExtendedTests.cs`)。各項目は定義の主張を Unity との突き合わせと数値健全性で担保する。
+
+| 検証項目 (3.6) | 内容 |
+| --- | --- |
+| A ToMatrix / `Mat3` | `ToMatrix(q)` == `Matrix4x4.Rotate`、作用 $R\mathbf{v}$ == $q \otimes \tilde{v} \otimes q^{*}$、$R^{\mathsf T}R = I$ かつ $\det R = +1$ |
+| B FromToRotation | $\mathbf{a}$ を $\mathbf{b}$ へ移す・単位・`Quaternion.FromToRotation` と一致。対蹠 $\mathbf{a} \approx -\mathbf{b}$ で $w = 0$(180°)へ退避 |
+| C Angle | `Angle(q0, q1)` == `Quaternion.Angle`、$\theta(q, -q) = 0$(内積絶対値による二重被覆の折り畳み) |
+| D RotationVector | `To`/`FromRotationVector` の往復が回転を保存、$|\mathbf{r}| = \theta$ |
+| E Reflect / ReflectionPair | 鏡映はノルム保存の対合。$\theta/2$ で交わる二枚鏡の合成 == `FromAxisAngle(n, θ)`(半角の実体)。退化ゼロ基準で軸直交へ退避 |
+| F EulerRateJacobian | $\det E = \cos(\text{pitch})$、数値微分 $\boldsymbol{\omega}_{\text{num}}$ と一致、ロック点で第2列(yaw)・第3列(roll)が平行($\mathrm{rank}\,E = 2$) |
+| G GimbalStages | 累積回転 inner == `FromEuler`(outer = yaw、middle = yaw · pitch) |
+| H EulerInterp / AngularSpeed | 端点一致・成分最短補間(`WrapAngle` $\in (-\pi, \pi]$)、角速度が Slerp で一定・Nlerp で変動 |
+| I Canonical | $w \ge 0$ 代表元へ畳み $q, -q$ が一致、$w = 0$ は先頭非零成分が正の側 |
+
 浮動小数の比較は許容誤差付きで行うこと。
 
 ---
@@ -329,13 +431,13 @@ Unity 組み込み `Quaternion` は内部が不可視で、`Slerp` の中身も 
 
 ## 8. 未決事項
 
-以下は v1 実装に着手する前に決すること。
+**v1 の未決事項はすべて確定した**(0章のサマリに反映済み)。記録として決定内容を残す。
 
-- 本編シーン名(`SampleScene` を改名するか、新規作成するか)
-- UIフレームワーク(UI Toolkit / uGUI)
-- グラフ描画の実現手段(自前 `LineRenderer` / 既存パッケージ)
-
-> 中殻の基準点 $\mathbf{p}_0$ と外殻の既定模型は、4.2 / 4.3 で決定済み。
+- 本編シーン名: **`QuaternionGlobe`** を新規作成(`SampleScene` は雛形として残置)
+- UIフレームワーク: **UI Toolkit**
+- グラフ描画: **UI Toolkit の Painter2D**
+- 中殻の基準点 $\mathbf{p}_0$ と外殻の既定模型: 4.2 / 4.3 で決定済み
+- 正準形の扱い: Core は畳まず表示層が章ごとに選ぶ(3.6-I)
 
 ---
 
