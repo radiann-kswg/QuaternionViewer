@@ -117,6 +117,44 @@
 
 ---
 
+## 追記4 (同日・章演出デモ3種+HUDデザイン刷新)
+
+### 演出デモ (右上 DEMOS パネルでON/OFF、既定OFF)
+- **MIRRORS (Ch.1 半角演示)**: `HalfAngleMirrors.cs`。θ/2 で交わる二枚の半透明鏡(シアン/オレンジ、URP Unlit透過・両面)+ v→S1(v)→S2S1(v) の経路折れ線。ReflectionPair(3.6-E)使用。
+- **GIMBAL (Ch.4)**: `GimbalRig.cs`。3重リング(外=yaw/中=pitch/内=roll、半径1.15/1.0/0.85)+軸受スタブ。GimbalStages(3.6-G)で駆動、|cos(pitch)| 0.35→0.03 で外環・内環が赤へ(det E連動)。検証: pitch76.9°でdet E=0.227、赤み確認。
+- **INTERP (Ch.5 三体比較)**: `InterpRace.cs`。Slerp(teal)/Nlerp(orange)/EulerInterp(magenta) の全経路を外殻ボール内に静的描画+時刻tマーカー3体(Playで自動走行、エディタはスライダ走査)。`GraphPlotter.cs`(Painter2D)が |ω|(t) 3曲線+グリッド+凡例+時刻カーソルを右下に描画。INTERPトグルと連動して表示。
+- `RotationSpaceBall.MapPoint(Quat)` を公開(軌跡・比較デモ共用)。
+
+### HUDデザイン刷新 (電子黒板/シミュレータ端末風)
+- `Scripts/UI/HudStyle.cs` 新規: 共通パレット(濃紺半透明地 + シアンアクセント)とパネル枠(上端アクセントライン+細枠)、見出し(レタースペース+太字)、端末風ボタン(余白リセット+アクセント枠)。
+- QuaternionReadout / ModelSwitcherUI / LayerCaptionsUI / DemoTogglesUI / GraphPlotter の全パネルに適用。トグルのアクティブ表示はシアン点灯。
+
+### シーン追加GO (未コミット)
+- HalfAngleMirrors / GimbalRig / InterpRace(いずれも既定 inactive)/ GraphPlotter(UIDocument)/ DemoTogglesUI(UIDocument)
+
+### 残り
+- 中殻の角度ゲージ(軸直交大円の分度器) / ArcballController / ChapterNavigator / Ch.2 符号反転ボタン / Ch.6 ωスライダ+|q|-1グラフ
+
+---
+
+## 追記5 (同日・フォント+背景)
+
+### ピクセルフォント導入 (ユーザー提案: 患者長ひっく氏 x0y0pxFreeFont)
+- `Assets/QuaternionViewer/Resources/Fonts/` に **x12y16pxMaruMonica.ttf**(マルモニカ: 漢字・かな・ギリシャ文字・上付き数字収録 → HUD既定)と **x12y20pxScanLine.ttf**(スキャンライン: 幅広の英数+かな、漢字非収録 → 数値・見出し・ボタン用)を同梱。`x0y0pxFreeFont-NOTICE.md` にライセンス表記(商用可・改変可・クレジット不要・単体販売禁止。2026年にSIL OFL移行予告あり)。**MITの対象外**として分離。
+- `HudStyle.PixelFont` / `LatinFont`(Resources.Load、静的キャッシュ)+ `ApplyFont` / `ApplyLatinFont`。Frame() は既定でマルモニカ、Readout全体・見出し・ボタン・グラフ凡例は幅広の ScanLine (サイズも1〜2px増、Readoutは幅360へ、長行は折返し許可)。
+- ScanLine 非収録の ▾▸ は R(q) トグルで「−/+」表記に変更。
+- レイヤーキャプションは**日本語化**(マルモニカが漢字収録のため): 「内核+中殻 ── S²球儀」「外殻 ── 回転空間ボール」。
+
+### 背景 (端末風)
+- Main Camera: Skybox → **SolidColor 濃紺 (0.016, 0.043, 0.070)**(地平線を消してHUDと同系色に)。
+- RenderSettings: ambientMode=Flat、ambientLight=(0.42, 0.47, 0.52)(スカイボックス環境光の代替)。
+
+### 文字サイズ調整 (ユーザーFB: 余白過多 → 文字で埋める)
+- 全体を1〜3px増: 見出し13 / ボタン13(高さ24) / q行16 / 数値・行列13(行高20) / 情報行13〜14 / 日本語キャプション16(副12、幅360)。
+- Readout幅 392 に拡大。θ と n は整形2行に分離(折返し任せをやめた)。
+
+---
+
 ## ✅ 突き合わせ結果 — Claude Code / VS Code 側 (444 シテン)
 
 「元の 3.6 草稿が VS Code 側に残っていれば差分を正典へ」との依頼を受け、痕跡を全層調査した。
