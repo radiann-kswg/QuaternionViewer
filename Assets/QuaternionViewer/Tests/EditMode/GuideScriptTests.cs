@@ -24,6 +24,7 @@ namespace QuaternionViewer.Tests
 @highlight HalfAngle
 @action flipSign
 @action clearTrail
+@focus pole+ pole-
 
 ### 直感
 直感1行目
@@ -104,6 +105,20 @@ namespace QuaternionViewer.Tests
         {
             GuideBeat beat = ParseFixture(out _, out _)[0];
             Assert.That(beat.actions, Is.EqualTo(new[] { "flipSign", "clearTrail" }));
+        }
+
+        [Test]
+        public void Parse_ReadsFocusTargets()
+        {
+            GuideBeat beat = ParseFixture(out _, out _)[0];
+            Assert.That(beat.focus, Is.EqualTo(new[] { "pole+", "pole-" }));
+        }
+
+        [Test]
+        public void Parse_FocusIsTransient_SecondBeatHasNone()
+        {
+            GuideBeat second = ParseFixture(out _, out _)[1];
+            Assert.That(second.focus, Is.Empty, "@focus は指差し ―― 宣言の無いビートでは空 (自動消灯)");
         }
 
         [Test]

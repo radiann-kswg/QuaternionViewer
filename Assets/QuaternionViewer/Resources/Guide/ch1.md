@@ -21,6 +21,7 @@
 ## ○ 軸を地軸として読む
 @camera CoreAndGlobe
 @highlight AxisAngle
+@focus pole+ pole-
 
 ### 直感
 回転軸 n は、地球儀の地軸そのものだ。球面 S^2 上の緯度経度で、ただ一点に指せる。軸が球を貫く二点、北極 n と南極 -n を見よ。
@@ -34,6 +35,7 @@ n と -n の両方が極になる点に注意を促す。「どちらが正の�
 ## ○ 角をゲージで読む・点を運ぶ
 @camera CoreAndGlobe
 @highlight AxisAngle
+@focus pin pinImage
 
 ### 直感
 二つの計器を分けて見る。地標ピンは「基準点 p0 が q でどこへ運ばれるか」= 作用を、軸周りの小円弧で描く。角度ゲージは「その角 θ はいくつか」= 計量を、常に最大の分度器で読む。
@@ -49,6 +51,7 @@ n と -n の両方が極になる点に注意を促す。「どちらが正の�
 @demos Mirrors
 @camera CoreAndGlobe
 @highlight HalfAngle
+@focus mirrors
 
 ### 直感
 なぜ「半分」なのか。回転とは、二枚の鏡に像を映す操作だからだ。鏡が角 θ/2 で交わっていると、像は θ だけ回る ―― 鏡の間の角の2倍。この「2倍」の裏返しが、四元数に現れる「半角」の正体だ。

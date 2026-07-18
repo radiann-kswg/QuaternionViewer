@@ -11,8 +11,7 @@ namespace QuaternionViewer.Chapters
     /// 章 (<see cref="ChapterBase"/>) の BeatChanged を購読し、既存資産を叩くだけで新しい演出は作らない。
     /// </summary>
     /// <remarks>
-    /// setCamera / setHighlight の適用先 (フレーミング補間・Readout 行強調 API) は未実装のため現状は無操作。
-    /// フック増強フェーズで実装する (.wip/2026-07-18-to-desktop-handoff.md)。
+    /// setCamera の適用先 (フレーミング補間) は未実装のため現状は無操作 (フック増強フェーズで実装)。
     /// 宣言で表せない特殊操作 (Ch.2 符号反転・Ch.5 補正トグル・Ch.6 ω設定) は
     /// <see cref="RegisterAction"/> で登録した名前付きアクションを @action 指示から呼ぶ。
     /// </remarks>
@@ -28,6 +27,10 @@ namespace QuaternionViewer.Chapters
         public InterpRace race;
         public GraphPlotter graph;
         public RotationSpaceBall ball;
+
+        [Header("「見よ」の適用先 (@focus / @highlight)")]
+        public FocusMarkerRenderer focusMarkers;
+        public QuaternionReadout readout;
 
         private readonly Dictionary<string, Action> _actions =
             new Dictionary<string, Action>(StringComparer.OrdinalIgnoreCase);
@@ -88,7 +91,12 @@ namespace QuaternionViewer.Chapters
                 ball.ClearTrail();
             }
 
-            // beat.setCamera / beat.setHighlight は適用先の実装待ち (クラス remarks 参照)。台本側の宣言は既に立ててある。
+            // @focus は「指差し」―― 宣言の無いビートでは空リストが渡り自動消灯する
+            if (focusMarkers != null) focusMarkers.SetTargets(beat.focus);
+
+            if (beat.setHighlight && readout != null) readout.Highlight(beat.highlight);
+
+            // beat.setCamera は適用先 (フレーミング補間) の実装待ち。台本側の宣言は既に立ててある。
 
             foreach (string actionName in beat.actions)
             {

@@ -77,5 +77,11 @@ namespace QuaternionViewer.Chapters
 
         /// <summary>宣言で表せない特殊操作 (符号反転・補正トグル等)。<see cref="GuideController"/> の登録済みアクション名。</summary>
         public List<string> actions = new List<string>();
+
+        /// <summary>
+        /// このビートで指し示す名所 (@focus)。set* 系と違い「状態」でなく「指差し」――
+        /// 宣言の無いビートへ移ると自動消灯する (FocusMarkerRenderer)。
+        /// </summary>
+        public List<string> focus = new List<string>();
     }
 }

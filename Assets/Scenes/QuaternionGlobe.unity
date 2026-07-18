@@ -316,6 +316,90 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &377961586
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 377961588}
+  - component: {fileID: 377961587}
+  m_Layer: 0
+  m_Name: FocusMarkers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &377961587
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377961586}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae23cf54bf7558f4c8a72ec55c9dafc0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Visualization.FocusMarkerRenderer
+  lineWidth: 0.014
+  pulseHz: 1.1
+  pulseAmount: 0.12
+  aliases:
+  - name: pole+
+    objectName: Pole+n
+    radius: 0.17
+  - name: pole-
+    objectName: Pole-n
+    radius: 0.17
+  - name: pin
+    objectName: PinBase
+    radius: 0.13
+  - name: pinImage
+    objectName: PinImage
+    radius: 0.13
+  - name: arc
+    objectName: SweepArc
+    radius: 0.22
+  - name: ballPose
+    objectName: Pose
+    radius: 0.17
+  - name: ballAntipode
+    objectName: PoseAntipode
+    radius: 0.17
+  - name: core
+    objectName: Core
+    radius: 0.95
+  - name: globe
+    objectName: Globe
+    radius: 1.72
+  - name: ball
+    objectName: RotationSpaceBall
+    radius: 1.18
+  - name: mirrors
+    objectName: HalfAngleMirrors
+    radius: 1.05
+  - name: gimbal
+    objectName: GimbalRig
+    radius: 1.35
+--- !u!4 &377961588
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 377961586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &607755150
 GameObject:
   m_ObjectHideFlags: 0
@@ -688,6 +772,8 @@ MonoBehaviour:
   race: {fileID: 348200249}
   graph: {fileID: 1627714552}
   ball: {fileID: 1148178111}
+  focusMarkers: {fileID: 377961587}
+  readout: {fileID: 50908031}
 --- !u!114 &1342278862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1307,3 +1393,4 @@ SceneRoots:
   - {fileID: 338681247}
   - {fileID: 1342278864}
   - {fileID: 1777544808}
+  - {fileID: 377961588}

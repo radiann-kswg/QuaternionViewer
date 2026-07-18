@@ -22,6 +22,7 @@ namespace QuaternionViewer.Chapters
     /// @camera CoreAndGlobe   (Overview / CoreAndGlobe / SpaceBall / Gimbal)
     /// @highlight WXYZ        (ReadoutHighlight の値)
     /// @action flipSign       (複数行可・記述順に実行)
+    /// @focus pole+ pole-     (指し示す名所。ビート限りで自動消灯)
     /// ### 直感 / ### 数理 / ### 話者ノート
     /// </code>
     /// 未知の指示・節は警告として報告し、無視する (台本の誤記でシーンを壊さない)。
@@ -213,6 +214,21 @@ namespace QuaternionViewer.Chapters
                     else
                     {
                         warnings.Add($"@highlight の未知行 '{arg}'");
+                    }
+
+                    break;
+
+                case "@focus":
+                    if (arg.Length > 0)
+                    {
+                        foreach (string token in arg.Split(new[] { ' ', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            beat.focus.Add(token);
+                        }
+                    }
+                    else
+                    {
+                        warnings.Add("@focus に対象名が無い");
                     }
 
                     break;

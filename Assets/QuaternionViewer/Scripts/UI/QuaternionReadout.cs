@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using QuaternionViewer.Chapters;
 using QuaternionViewer.Core;
 using QuaternionViewer.Visualization;
 using UnityEngine;
@@ -43,6 +45,12 @@ namespace QuaternionViewer.UI
         private Label[] _matrixCells;
         private VisualElement _matrixBox;
         private Button _matrixToggle;
+
+        // 行強調 (@highlight): 強調グループと現在の適用先。Build のたびに組み直す
+        private readonly Dictionary<ReadoutHighlight, List<VisualElement>> _groups =
+            new Dictionary<ReadoutHighlight, List<VisualElement>>();
+        private readonly List<VisualElement> _styled = new List<VisualElement>();
+        private ReadoutHighlight _highlight = ReadoutHighlight.None;
 
         private void OnEnable()
         {
@@ -99,6 +107,7 @@ namespace QuaternionViewer.UI
             // 成分バー: w, x, y, z の順 (表示は数学記法に合わせ w 先頭。仕様書 4.4)
             _compValues = new Label[4];
             _compFills = new VisualElement[4];
+            var wxyzGroup = new List<VisualElement> { _qLabel };
             string[] names = { "w", "x", "y", "z" };
             Color[] colors = { ColW, ColX, ColY, ColZ };
             for (int i = 0; i < 4; i++)
@@ -108,6 +117,7 @@ namespace QuaternionViewer.UI
                 row.style.alignItems = Align.Center;
                 row.style.marginTop = 1f;
                 panel.Add(row);
+                wxyzGroup.Add(row);
 
                 var name = new Label(names[i]);
                 name.style.width = 18f;
@@ -214,7 +224,54 @@ namespace QuaternionViewer.UI
                 }
             }
 
+            _groups.Clear();
+            _styled.Clear();
+            _groups[ReadoutHighlight.WXYZ] = wxyzGroup;
+            _groups[ReadoutHighlight.AxisAngle] = new List<VisualElement> { _axisAngleLabel };
+            _groups[ReadoutHighlight.HalfAngle] = new List<VisualElement> { _halfAngleLabel };
+            _groups[ReadoutHighlight.Euler] = new List<VisualElement> { _eulerLabel };
+            _groups[ReadoutHighlight.DetE] = new List<VisualElement> { _driftLabel };
+            _groups[ReadoutHighlight.QNormDrift] = new List<VisualElement> { _driftLabel };
+            _groups[ReadoutHighlight.Matrix] = new List<VisualElement> { _matrixToggle, _matrixBox };
+            ApplyHighlight(_highlight);
+
             ApplyMatrixVisibility();
+        }
+
+        // ---- 行強調 (@highlight) -------------------------------------------
+
+        /// <summary>
+        /// 解説ビートの @highlight ―― 該当行へアクセント強調 (地色+左縁) を付ける。None で解除。
+        /// 適用は set* 系の宣言に従い持続する (次に @highlight を宣言するビートまで維持)。
+        /// </summary>
+        public void Highlight(ReadoutHighlight target)
+        {
+            _highlight = target;
+            ApplyHighlight(target);
+        }
+
+        private void ApplyHighlight(ReadoutHighlight target)
+        {
+            foreach (VisualElement ve in _styled)
+            {
+                ve.style.backgroundColor = Color.clear;
+                ve.style.borderLeftWidth = 0f;
+            }
+
+            _styled.Clear();
+            if (target == ReadoutHighlight.None || !_groups.TryGetValue(target, out List<VisualElement> group))
+            {
+                return;
+            }
+
+            var tint = new Color(HudStyle.Accent.r, HudStyle.Accent.g, HudStyle.Accent.b, 0.12f);
+            foreach (VisualElement ve in group)
+            {
+                ve.style.backgroundColor = tint;
+                ve.style.borderLeftWidth = 2f;
+                ve.style.borderLeftColor = HudStyle.Accent;
+                _styled.Add(ve);
+            }
         }
 
         private void ApplyMatrixVisibility()
