@@ -14,6 +14,7 @@ namespace QuaternionViewer.Chapters
         Gimbal = 2,
         Interp = 4,
         Graph = 8,
+        TwinDice = 16,
     }
 
     /// <summary>カメラのフレーミング指示 (section-guide §2)。適用はフック増強フェーズで実装する。</summary>
@@ -62,6 +63,10 @@ namespace QuaternionViewer.Chapters
         public bool setPosture;
         public Vector3 axis = Vector3.up;
         public float angleDeg;
+
+        /// <summary>オイラー角 (ZXY, 度) での姿勢指示 (@euler)。ジンバル章 (Ch.4) が使う。</summary>
+        public bool setEulerPosture;
+        public Vector3 eulerDeg;
 
         public bool setDemos;
         public DemoFlags demos = DemoFlags.None;

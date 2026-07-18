@@ -239,5 +239,53 @@
 - 残りのうち**カメラフレーミング (@camera) だけが宣言のみ未適用**になった。次はそこか、Ch.2 台本+符号反転か。
 
 ---
+## ✅ 全6章の解説モード化 + develop 運用開始 (Desktop 44 ・ 同日続き)
+
+提督が**アルファ公開**(パブリックリポジトリ化)。以後の作業は `develop` ブランチ ―― AGENTS.md §6 に運用を追記済み (develop=作業 / master=リリース、マージ・push は提督判断)。本節以降のコミットは develop (`a93c312`)。
+
+### 入ったもの
+- **章切替**: `UI/ChapterNavigator` (spec 6.1 必須UI) + 解説バーに章送りボタン `<< >>`、キーボード ↑↓=章 / ←→=ビート。切替時は GuideController の購読を張り替え章頭ビートを適用。
+- **Ch.2 二重被覆** (完全動作): `flipSign` アクション ―― driveFromInspector を切り生の -q を配布点へ (Readout は正準化しないので全成分反転が見える。w=∓0.696 の往復を実測)。ビート3は外殻の対蹠点+色反転を @focus ballPose/ballAntipode で指す。
+- **Ch.4 ジンバルロック** (完全動作): `@euler p y r` 指示を新設 (FromEuler 経由で Pose 直書き)。ビート2の euler(90,30,10) は ToEuler 読み戻しで (90,20,0) ―― **ロック点で yaw/roll が混合する縮退そのもの**が Readout に出る。怪我の功名ならぬ仕様の必然、プレゼンでそのまま語れる。
+- **Ch.5 補間** (完全動作): `InterpRace.shortestPath` フィールド化 (spec 3.2「トグルで切れること」) + アクション interpCorrectionOn/Off・interpDefaultEnds/interpCloseEnds (Ω→0 演示)。
+- **Ch.3 / Ch.6** (台本+部分動作): 全ビートの二層ナレーションは完成。Ch.3 の二体サイコロ並置、Ch.6 の ωドライバ (world/body・積分器)・|q|-1 グラフは未実装で、話者ノートに代替手順を注記。Ch.6 は暫定 spinOn/spinOff で連続回転を見せる (ビート3の回転ベクトル模型内の放射直線トレイルは出る)。
+- 台本 ch2〜ch6.md 転記完了 ―― **全6章23ビート** (§4.0 の勘定と一致)。テスト**77本全緑** (@euler パーサ1本追加)。シーン結線・保存済み。
+
+### 残り (次段)
+1. **二体サイコロ並置** (Ch.3 の核心2ビートの演出。DemoFlags 拡張 + TwinDiceRig + Readout 比較)
+2. **ωドライバ** (Ch.6: RotationIntegrator を回す駆動コンポーネント、world/body・Euler/RK4・正規化トグル) + **GraphPlotter |q|-1 モード**
+3. @camera (フレーミング補間 ―― 最後の宣言のみ未適用)
+4. 角度ゲージ (Ch.1 ビート3) / 話者ノート窓 / Prefab 化検討 / リング・強調の見た目調整 (目視待ち)
+
+---
+## ✅ 三本立て: 二体サイコロ / ωドライバ / カメラ寄せ+章周回 (Desktop 44 ・ 同日続き)
+
+提督のバグ報告2件の切り分け → ①Ch.6-4の停止=台本のspinOff(旧仕様、ωドライバ化で解消) ②Ch.6→Ch.1不遷移=クランプ仕様(周回へ改善)。以後は変更内容ごとにdevelopへコミットする運用 (提督指示)。
+
+- **421d842 ―― Ch.3 二体サイコロ (TwinDiceRig)**: Core/Diceをクローンして左右並置、X→Y / Y→X を逐次アニメ適用 (t∈[0,2]、端で静止保持、twinRestartで再走行)。アクティブ中はCoreを退避。DemoFlags.TwinDice追加、@focus twin、ch3.md演出化。ポーズ合成テスト3本。
+- **03b8a40 ―― Ch.6 完成 (OmegaDriver + NormDrift)**: dq/dt=½ω̃⊗q を毎フレーム積分してRotationSource駆動 (world/body・Euler/RK4・正規化トグル)。GraphPlotterにNormDriftモード(|q|-1履歴)。アクション: omegaOn/Off・omegaWorld/Body・normalizeOn/Off・graphSpeed/graphDrift。**姿勢指示(@posture/@euler)のあるビートへ移るとdriver.runを自動停止**(姿勢優先) ―― これが章離脱時の安全弁。ch6.md実演化 (B2でbody切替、B4は回しっぱなしで漂流が伸びる)。
+- **17bc0ed ―― @camera + 章周回**: CameraFramerが4プリセット(Overview/CoreAndGlobe/SpaceBall/Gimbal)へSmoothStep補間で寄せ、完了時にArcballController.SyncFromCamera()で周回状態を再同期。ChapterNavigatorは端で周回、ビート送りは章境界を越えて流れる ―― **→キー連打で全23ビート通し運転**。台本の全宣言が適用先を持った。
+- テスト**80本全緑**。Playモード放置でエディタ応答が止まる一幕あり(提督がフォーカス復帰で解決) ―― 結線は全て無傷、状態を安全側へ戻して(driver停止・normalize/補正on・Ch.1先頭)シーン保存済み。
+
+### 残り (次段候補)
+- Ch.6 B2のworld/body実演は入場時切替のみ ―― ビート内トグルUI(または積分器Euler/RK4切替UI)を足すか検討
+- 角度ゲージ(Ch.1 B3) / 話者ノート窓 / 自由探索復帰の明示UI / 見た目調整(リング・カメラプリセット座標は目視待ち) / Prefab化 / Ch.3のReadout二体比較
+- push・masterへの取り込みは提督判断 (AGENTS.md §6)
+
+---
+### 追記: Ch.3 二体サイコロ不可視バグ修正 (36072a4)
+
+提督のPlay目視で発覚 ―― クローンは生成・配置・描画有効まで正常だが bounds が (0.01,0.01,0.01)、つまり**極小で見えないだけ**だった。真因: テンプレ Core/Dice の localScale は FBX インポート補正込みの **(100,100,100)** で、これを diceScale=0.72 の直接代入で上書きしていた (1m → 約7mm)。修正: `テンプレの localScale × diceScale` の比率縮小 (実測 bounds 0.72m)。
+
+**教訓 (記憶にも記録)**: FBX 由来 GO のクローンで localScale を直接代入してはならない ―― インポート補正が乗っている前提で必ず比率で操作する。実寸検証は Renderer.bounds を見るのが確実 (childCount や activeSelf では捕まらない)。
+
+---
+### 追記: Readout 情報行の固定列化 (061d63e) ―― 想定機能の完走
+
+提督の通し確認FBを受け、桁数で折返し・位置ズレしていた行を固定列へ: オイラー角=「Euler ZXY」+ p/y/r 値行 (1/3幅・右詰め) の2行固定、半角行 (cos(θ/2)=w / sin(θ/2)=|v|) と det E・|q|−1 行=1/2幅セルの固定列。@highlight の対象も追随。
+
+**提督宣言: 想定していた機能の実装はこれで完走。** 以降は磨き (角度ゲージ・話者ノート窓・見た目調整・Prefab化・README/handout追随) とリリース (develop→master取り込み・push=提督判断)。
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg

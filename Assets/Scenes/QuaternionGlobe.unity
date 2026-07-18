@@ -296,6 +296,7 @@ MonoBehaviour:
   startAngleDeg: 10
   endAxis: {x: 1, y: 2, z: 0.5}
   endAngleDeg: 170
+  shortestPath: 1
   t: 0.35
   run: 1
   duration: 5
@@ -385,6 +386,9 @@ MonoBehaviour:
   - name: gimbal
     objectName: GimbalRig
     radius: 1.35
+  - name: twin
+    objectName: TwinDiceRig
+    radius: 1.35
 --- !u!4 &377961588
 Transform:
   m_ObjectHideFlags: 0
@@ -392,6 +396,60 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 377961586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &389979297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 389979299}
+  - component: {fileID: 389979298}
+  m_Layer: 0
+  m_Name: TwinDiceRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &389979298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389979297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b43ea49392a6fe49a2a1ba92394b6ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Visualization.TwinDiceRig
+  diceTemplate: {fileID: 1363227645}
+  hideWhileActive: {fileID: 779047024}
+  axisA: {x: 1, y: 0, z: 0}
+  axisB: {x: 0, y: 1, z: 0}
+  angleDeg: 90
+  separation: 1.7
+  diceScale: 0.72
+  run: 1
+  duration: 4
+  t: 0
+--- !u!4 &389979299
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389979297}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -410,6 +468,7 @@ GameObject:
   m_Component:
   - component: {fileID: 607755152}
   - component: {fileID: 607755151}
+  - component: {fileID: 607755153}
   m_Layer: 0
   m_Name: RotationSource
   m_TagString: Untagged
@@ -449,6 +508,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &607755153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 607755150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6231671180939c94b8814ecb5cb9342a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Visualization.OmegaDriver
+  source: {fileID: 607755151}
+  omegaDegPerSec: {x: 25, y: 70, z: 15}
+  space: 1
+  method: 0
+  normalize: 1
+  run: 0
+--- !u!1 &779047024 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5809554111187947782, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+  m_PrefabInstance: {fileID: 7229541939360022341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &815139717
 GameObject:
   m_ObjectHideFlags: 0
@@ -733,6 +815,12 @@ GameObject:
   - component: {fileID: 1342278862}
   - component: {fileID: 1342278861}
   - component: {fileID: 1342278860}
+  - component: {fileID: 1342278870}
+  - component: {fileID: 1342278869}
+  - component: {fileID: 1342278868}
+  - component: {fileID: 1342278867}
+  - component: {fileID: 1342278866}
+  - component: {fileID: 1342278865}
   m_Layer: 0
   m_Name: GuideUI
   m_TagString: Untagged
@@ -752,7 +840,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d12ae70e39bc86c488130ef2ca6d6cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.GuideBarUI
+  navigator: {fileID: 1342278865}
   chapter: {fileID: 1342278862}
+  graph: {fileID: 1627714552}
 --- !u!114 &1342278861
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -772,6 +862,9 @@ MonoBehaviour:
   race: {fileID: 348200249}
   graph: {fileID: 1627714552}
   ball: {fileID: 1148178111}
+  twinDice: {fileID: 389979298}
+  omegaDriver: {fileID: 607755153}
+  framer: {fileID: 1777544809}
   focusMarkers: {fileID: 377961587}
   readout: {fileID: 50908031}
 --- !u!114 &1342278862
@@ -825,6 +918,92 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1342278865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b9eb8bc25a9fba46bfa6cbfd0703c94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.ChapterNavigator
+  chapters:
+  - {fileID: 1342278862}
+  - {fileID: 1342278870}
+  - {fileID: 1342278869}
+  - {fileID: 1342278868}
+  - {fileID: 1342278867}
+  - {fileID: 1342278866}
+  controller: {fileID: 1342278861}
+  index: 0
+--- !u!114 &1342278866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e14b5e1651b294583b5c6c97524510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch6_AngularVelocity
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 097a433d05adeb446b2dfdd98ac96da4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch5_Interpolation
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30833350931dc06438be15cfc32dedbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch4_GimbalLock
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5adf562fadeba94393519dab5fd1e8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch3_NonCommutativity
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f87b08547e9f64db9fd68db108cf27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch2_DoubleCover
+  scriptAsset: {fileID: 0}
 --- !u!1 &1349001076
 GameObject:
   m_ObjectHideFlags: 0
@@ -894,6 +1073,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1363227645 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2515416400243088468, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+  m_PrefabInstance: {fileID: 7229541939360022341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1427213999
 GameObject:
   m_ObjectHideFlags: 0
@@ -979,8 +1163,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1427213999}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5.75}
+  m_LocalRotation: {x: 0.024368513, y: 0, z: 0, w: 0.99970305}
+  m_LocalPosition: {x: 0, y: 0.2, z: -4.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1068,7 +1252,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.GraphPlotter
   race: {fileID: 348200249}
+  driver: {fileID: 607755153}
+  mode: 1
   samples: 64
+  driftCapacity: 240
 --- !u!114 &1627714553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1122,6 +1309,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1777544808}
   - component: {fileID: 1777544807}
+  - component: {fileID: 1777544809}
   m_Layer: 0
   m_Name: InputController
   m_TagString: Untagged
@@ -1166,6 +1354,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1777544809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777544806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9a39ba20a809824b8c751e8e30f7302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.CameraFramer
+  cam: {fileID: 1427214001}
+  arcball: {fileID: 1777544807}
+  duration: 0.7
+  presets:
+  - framing: 0
+    position: {x: 0, y: 0, z: -5.75}
+    lookAt: {x: 0, y: 0, z: 0}
+  - framing: 1
+    position: {x: 0, y: 0.2, z: -4.1}
+    lookAt: {x: 0, y: 0, z: 0}
+  - framing: 2
+    position: {x: 2.5, y: 0.3, z: -3.5}
+    lookAt: {x: 3.3, y: 0, z: 0}
+  - framing: 3
+    position: {x: 0, y: 0.9, z: -4.7}
+    lookAt: {x: 0, y: 0, z: 0}
 --- !u!4 &1849059097 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4508242350755134426, guid: 2d3cd3e870a7d844a9902b0beed06c40, type: 3}
@@ -1292,6 +1508,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Core
       objectReference: {fileID: 0}
+    - target: {fileID: 5809554111187947782, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8335910973804514177, guid: 4d3f276431390e440a8120682dda4765, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1306,7 +1526,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1712834790777230626, guid: 4d3f276431390e440a8120682dda4765, type: 3}
   m_PrefabInstance: {fileID: 7229541939360022341}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 779047024}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43fa03a6757b85c47958f4c93e424d7b, type: 3}
@@ -1394,3 +1614,4 @@ SceneRoots:
   - {fileID: 1342278864}
   - {fileID: 1777544808}
   - {fileID: 377961588}
+  - {fileID: 389979299}

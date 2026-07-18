@@ -7,19 +7,30 @@ namespace QuaternionViewer.UI
 {
     /// <summary>
     /// 解説バー (section-guide §3) ―― 画面下部のステップ送り UI。
-    /// 章ラベル / ビート進捗 (●=核心・○=発展、クリックでジャンプ) / Prev/Next /
+    /// 章送り (‹‹ ››) / 章ラベル / ビート進捗 (●=核心・○=発展、クリックでジャンプ) / Prev/Next /
     /// 〔直感〕常時表示 / 〔数理〕折りたたみ (MATH トグル)。
     /// </summary>
     /// <remarks>
-    /// 話者ノート窓・自由探索トグル・章間送り (ChapterNavigator) はフック増強フェーズで追加する。
-    /// ビート移動の適用は <see cref="GuideController"/> が章の BeatChanged 経由で行うため、
-    /// 本 UI は <see cref="ChapterBase"/> の操作だけを受け持つ。
+    /// 章の一覧と切替は <see cref="ChapterNavigator"/> が持ち、本 UI はその表示と操作面。
+    /// navigator 未設定時は <see cref="chapter"/> 単章で動く。
+    /// キーボード (Play 中): ← → = ビート送り / ↑ ↓ = 章送り (仕様書 7章)。
+    /// 話者ノート窓・自由探索トグルはフック増強フェーズで追加する。
     /// </remarks>
     [ExecuteAlways]
     [RequireComponent(typeof(UIDocument))]
     public class GuideBarUI : MonoBehaviour
     {
+        [Tooltip("章切替 (未設定なら chapter 単章)")]
+        public ChapterNavigator navigator;
+
+        [Tooltip("navigator 未設定時に使う単章")]
         public ChapterBase chapter;
+
+        [Tooltip("角速度グラフ (表示中は解説バーが右幅を譲って重なりを避ける)")]
+        public GraphPlotter graph;
+
+        /// <summary>グラフパネルの占有幅 (右12 + 幅300, GraphPlotter.Build) + 間隔 8。</summary>
+        private const float GraphClearance = 320f;
 
         private UIDocument _doc;
         private Label _chapterLabel;
@@ -29,8 +40,14 @@ namespace QuaternionViewer.UI
         private VisualElement _mathBox;
         private VisualElement _dots;
         private Button _bMath;
+        private VisualElement _panel;
         private bool _mathOpen;
+        private bool _graphVisible;
         private int _seenRevision = -1;
+        private ChapterBase _seenChapter;
+
+        private ChapterBase Active =>
+            navigator != null && navigator.Current != null ? navigator.Current : chapter;
 
         private void OnEnable()
         {
@@ -42,6 +59,7 @@ namespace QuaternionViewer.UI
         {
             if (_doc != null && _doc.rootVisualElement != null) _doc.rootVisualElement.Clear();
             _seenRevision = -1;
+            _seenChapter = null;
         }
 
         private void Build()
@@ -51,6 +69,7 @@ namespace QuaternionViewer.UI
             root.Clear();
 
             var panel = new VisualElement();
+            _panel = panel;
             panel.style.position = Position.Absolute;
             panel.style.left = 12f;
             panel.style.right = 12f;
@@ -62,18 +81,28 @@ namespace QuaternionViewer.UI
             HudStyle.Frame(panel);
             root.Add(panel);
 
-            // ── 見出し行: 章ラベル + 進捗 + 送り + MATH ─────────────────
+            // ── 見出し行: 章送り + 章ラベル + 進捗 + ビート送り + MATH ──────
             var header = new VisualElement();
             header.style.flexDirection = FlexDirection.Row;
             header.style.alignItems = Align.Center;
             header.style.marginBottom = 4f;
             panel.Add(header);
 
+            var bPrevCh = new Button(() => { if (navigator != null) navigator.PrevChapter(); }) { text = "<<" };
+            HudStyle.Button(bPrevCh, 22f);
+            header.Add(bPrevCh);
+
             _chapterLabel = new Label("");
             _chapterLabel.style.color = HudStyle.Accent;
             _chapterLabel.style.fontSize = 14;
             _chapterLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+            _chapterLabel.style.marginLeft = 4f;
+            _chapterLabel.style.marginRight = 4f;
             header.Add(_chapterLabel);
+
+            var bNextCh = new Button(() => { if (navigator != null) navigator.NextChapter(); }) { text = ">>" };
+            HudStyle.Button(bNextCh, 22f);
+            header.Add(bNextCh);
 
             var spacer = new VisualElement();
             spacer.style.flexGrow = 1f;
@@ -92,8 +121,8 @@ namespace QuaternionViewer.UI
             _countLabel.style.marginRight = 6f;
             header.Add(_countLabel);
 
-            var bPrev = new Button(() => { if (chapter != null) chapter.Prev(); }) { text = "<" };
-            var bNext = new Button(() => { if (chapter != null) chapter.Next(); }) { text = ">" };
+            var bPrev = new Button(PrevStep) { text = "<" };
+            var bNext = new Button(NextStep) { text = ">" };
             _bMath = new Button(ToggleMath) { text = "MATH" };
             foreach (Button b in new[] { bPrev, bNext, _bMath })
             {
@@ -137,6 +166,41 @@ namespace QuaternionViewer.UI
             panel.Add(hint);
 
             _seenRevision = -1;
+            _seenChapter = null;
+            _graphVisible = false; // 再構築後は right=12 に戻っている ―― Update で現状に合わせ直す
+        }
+
+        /// <summary>ビート送り。章末では次章の先頭へ流れる (章は周回 ―― 通し運転用)。</summary>
+        private void NextStep()
+        {
+            ChapterBase active = Active;
+            if (active == null) return;
+            if (navigator != null && active.CurrentIndex >= active.Beats.Count - 1)
+            {
+                navigator.NextChapter();
+                navigator.Current?.JumpTo(0);
+            }
+            else
+            {
+                active.Next();
+            }
+        }
+
+        /// <summary>ビート戻し。章頭では前章の末尾へ流れる。</summary>
+        private void PrevStep()
+        {
+            ChapterBase active = Active;
+            if (active == null) return;
+            if (navigator != null && active.CurrentIndex <= 0)
+            {
+                navigator.PrevChapter();
+                ChapterBase prev = navigator.Current;
+                if (prev != null) prev.JumpTo(prev.Beats.Count - 1);
+            }
+            else
+            {
+                active.Prev();
+            }
         }
 
         private void ToggleMath()
@@ -148,29 +212,46 @@ namespace QuaternionViewer.UI
 
         private void Update()
         {
-            if (chapter == null || _chapterLabel == null) return;
-
-            // 講義・自習共用のキーボード送り (→ / ←)。Play モードのみ (section-guide §3.2)。
-            if (Application.isPlaying && Keyboard.current != null)
+            // グラフ (ANGULAR SPEED) 表示中は右幅を譲る ―― ボタンがパネルの下に潜って押せなくなるのを防ぐ
+            bool graphOn = graph != null && graph.gameObject.activeInHierarchy;
+            if (_panel != null && graphOn != _graphVisible)
             {
-                if (Keyboard.current.rightArrowKey.wasPressedThisFrame) chapter.Next();
-                if (Keyboard.current.leftArrowKey.wasPressedThisFrame) chapter.Prev();
+                _graphVisible = graphOn;
+                _panel.style.right = graphOn ? GraphClearance : 12f;
             }
 
-            if (chapter.Revision != _seenRevision) Refresh();
+            ChapterBase active = Active;
+            if (active == null || _chapterLabel == null) return;
+
+            // 講義・自習共用のキーボード送り。← → = ビート / ↑ ↓ = 章 (Play モードのみ)
+            if (Application.isPlaying && Keyboard.current != null)
+            {
+                Keyboard kb = Keyboard.current;
+                if (kb.rightArrowKey.wasPressedThisFrame) NextStep();
+                if (kb.leftArrowKey.wasPressedThisFrame) PrevStep();
+                if (navigator != null)
+                {
+                    if (kb.downArrowKey.wasPressedThisFrame) navigator.NextChapter();
+                    if (kb.upArrowKey.wasPressedThisFrame) navigator.PrevChapter();
+                }
+            }
+
+            active = Active; // 章送りで替わった可能性
+            if (active != _seenChapter || active.Revision != _seenRevision) Refresh(active);
         }
 
-        private void Refresh()
+        private void Refresh(ChapterBase active)
         {
-            _seenRevision = chapter.Revision;
+            _seenChapter = active;
+            _seenRevision = active.Revision;
 
-            GuideBeat beat = chapter.Current;
-            int count = chapter.Beats.Count;
-            int index = chapter.CurrentIndex;
+            GuideBeat beat = active.Current;
+            int count = active.Beats.Count;
+            int index = active.CurrentIndex;
 
             _chapterLabel.text = count > 0 && beat != null
-                ? $"{chapter.ChapterTitle} ― {beat.title}"
-                : chapter.ChapterTitle;
+                ? $"{active.ChapterTitle} ― {beat.title}"
+                : active.ChapterTitle;
             _countLabel.text = count > 0 ? $"{index + 1} / {count}" : "- / -";
             _intuition.text = beat != null ? beat.intuition : "(台本なし)";
             _mathLabel.text = beat != null && beat.math.Length > 0 ? beat.math : "(このビートに数理層はない)";
@@ -179,9 +260,9 @@ namespace QuaternionViewer.UI
             for (int i = 0; i < count; i++)
             {
                 int target = i;
-                var dot = new Button(() => chapter.JumpTo(target))
+                var dot = new Button(() => active.JumpTo(target))
                 {
-                    text = chapter.Beats[i].core ? "●" : "○",
+                    text = active.Beats[i].core ? "●" : "○",
                 };
                 dot.style.backgroundColor = Color.clear;
                 dot.style.borderTopWidth = 0f;

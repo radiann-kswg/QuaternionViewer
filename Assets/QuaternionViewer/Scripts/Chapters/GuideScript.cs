@@ -23,6 +23,7 @@ namespace QuaternionViewer.Chapters
     /// @highlight WXYZ        (ReadoutHighlight の値)
     /// @action flipSign       (複数行可・記述順に実行)
     /// @focus pole+ pole-     (指し示す名所。ビート限りで自動消灯)
+    /// @euler 90 0 0          (オイラー角 pitch yaw roll (度) で姿勢指示 ―― Ch.4 用)
     /// ### 直感 / ### 数理 / ### 話者ノート
     /// </code>
     /// 未知の指示・節は警告として報告し、無視する (台本の誤記でシーンを壊さない)。
@@ -151,6 +152,22 @@ namespace QuaternionViewer.Chapters
                     else
                     {
                         warnings.Add($"@posture の書式不正 '{line}' (軸 x y z と角 deg の4値が要る)");
+                    }
+
+                    break;
+
+                case "@euler":
+                    if (parts.Length == 4
+                        && TryFloat(parts[1], out float p)
+                        && TryFloat(parts[2], out float yaw)
+                        && TryFloat(parts[3], out float roll))
+                    {
+                        beat.setEulerPosture = true;
+                        beat.eulerDeg = new Vector3(p, yaw, roll);
+                    }
+                    else
+                    {
+                        warnings.Add($"@euler の書式不正 '{line}' (pitch yaw roll の3値 (度) が要る)");
                     }
 
                     break;

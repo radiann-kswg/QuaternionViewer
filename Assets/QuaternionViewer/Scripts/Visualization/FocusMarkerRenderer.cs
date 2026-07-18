@@ -56,6 +56,7 @@ namespace QuaternionViewer.Visualization
             ("globe", "Globe", 1.72f),
             ("ball", "RotationSpaceBall", 1.18f),
             ("mirrors", "HalfAngleMirrors", 1.05f),
+            ("twin", "TwinDiceRig", 1.35f),
             ("gimbal", "GimbalRig", 1.35f),
         };
 

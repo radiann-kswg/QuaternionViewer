@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using QuaternionViewer.Core;
 using QuaternionViewer.UI;
 using QuaternionViewer.Visualization;
 using UnityEngine;
@@ -11,7 +12,7 @@ namespace QuaternionViewer.Chapters
     /// 章 (<see cref="ChapterBase"/>) の BeatChanged を購読し、既存資産を叩くだけで新しい演出は作らない。
     /// </summary>
     /// <remarks>
-    /// setCamera の適用先 (フレーミング補間) は未実装のため現状は無操作 (フック増強フェーズで実装)。
+    /// setCamera は <see cref="CameraFramer"/> がプリセット視点へ滑らかに寄せる。
     /// 宣言で表せない特殊操作 (Ch.2 符号反転・Ch.5 補正トグル・Ch.6 ω設定) は
     /// <see cref="RegisterAction"/> で登録した名前付きアクションを @action 指示から呼ぶ。
     /// </remarks>
@@ -27,6 +28,9 @@ namespace QuaternionViewer.Chapters
         public InterpRace race;
         public GraphPlotter graph;
         public RotationSpaceBall ball;
+        public TwinDiceRig twinDice;
+        public OmegaDriver omegaDriver;
+        public CameraFramer framer;
 
         [Header("「見よ」の適用先 (@focus / @highlight)")]
         public FocusMarkerRenderer focusMarkers;
@@ -62,6 +66,112 @@ namespace QuaternionViewer.Chapters
             {
                 if (ball != null) ball.ClearTrail();
             });
+
+            // Ch.2: 符号反転 q ← -q。生の -q を配布点へ置く (Readout は正準化しない ―― spec 3.6-I)。
+            // 再入場でもう一度反転する (往復可)。ドラッグ終了時の軸角読み戻しでも符号は保存される。
+            RegisterAction("flipSign", () =>
+            {
+                if (source == null) return;
+                source.driveFromInspector = false;
+                source.spin = false;
+                source.Pose = source.Pose * -1f;
+            });
+
+            // Ch.3: 二体サイコロの適用アニメを頭から再走行
+            RegisterAction("twinRestart", () =>
+            {
+                if (twinDice != null) twinDice.Restart();
+            });
+
+            // Ch.6: 自動回転 (現状は世界系固定軸の角度積算。ω ドライバ実装までの暫定)
+            RegisterAction("spinOn", () =>
+            {
+                if (source == null) return;
+                source.driveFromInspector = true;
+                source.spin = true;
+            });
+            RegisterAction("spinOff", () =>
+            {
+                if (source != null) source.spin = false;
+            });
+
+            // Ch.6: ω ドライバ (仕様書 5.6)。姿勢指示のあるビートへ移ると Apply が run を切る
+            RegisterAction("omegaOn", () =>
+            {
+                if (omegaDriver != null) omegaDriver.run = true;
+            });
+            RegisterAction("omegaOff", () =>
+            {
+                if (omegaDriver != null) omegaDriver.run = false;
+            });
+            RegisterAction("omegaWorld", () =>
+            {
+                if (omegaDriver != null) omegaDriver.space = AngularVelocitySpace.World;
+            });
+            RegisterAction("omegaBody", () =>
+            {
+                if (omegaDriver != null) omegaDriver.space = AngularVelocitySpace.Body;
+            });
+            RegisterAction("normalizeOn", () =>
+            {
+                if (omegaDriver != null) omegaDriver.normalize = true;
+            });
+            RegisterAction("normalizeOff", () =>
+            {
+                if (omegaDriver != null) omegaDriver.normalize = false;
+            });
+            RegisterAction("graphSpeed", () =>
+            {
+                if (graph != null) graph.SetMode(GraphMode.AngularSpeed);
+            });
+            RegisterAction("graphDrift", () =>
+            {
+                if (graph != null) graph.SetMode(GraphMode.NormDrift);
+            });
+
+            // Ch.5: 最短経路補正トグル (spec 3.2 / 5.5)
+            RegisterAction("interpCorrectionOn", () =>
+            {
+                if (race != null) race.shortestPath = true;
+            });
+            RegisterAction("interpCorrectionOff", () =>
+            {
+                if (race != null) race.shortestPath = false;
+            });
+
+            // Ch.5: 両端の設定 (既定 ⇄ ほぼ一致 ―― Ω→0 の除去可能特異点演示)
+            RegisterAction("interpDefaultEnds", () =>
+            {
+                if (race == null) return;
+                race.startAxis = new Vector3(0f, 1f, 0f);
+                race.startAngleDeg = 10f;
+                race.endAxis = new Vector3(1f, 2f, 0.5f);
+                race.endAngleDeg = 170f;
+            });
+            RegisterAction("interpCloseEnds", () =>
+            {
+                if (race == null) return;
+                race.endAxis = race.startAxis;
+                race.endAngleDeg = race.startAngleDeg + 8f;
+            });
+        }
+
+        /// <summary>章を切り替える (ChapterNavigator が呼ぶ)。購読を張り替えて現在ビートを適用する。</summary>
+        public void SetChapter(ChapterBase next)
+        {
+            if (chapter == next)
+            {
+                if (chapter != null) Apply(chapter.Current);
+                return;
+            }
+
+            if (chapter != null) chapter.BeatChanged -= Apply;
+            chapter = next;
+            if (chapter != null)
+            {
+                chapter.BeatChanged += Apply;
+                Apply(chapter.Current);
+            }
         }
 
         /// <summary>ビートの宣言を儀へ適用する。set* が立っていない項目は現状維持 (section-guide §1.3)。</summary>
@@ -71,10 +181,19 @@ namespace QuaternionViewer.Chapters
 
             if (beat.setPosture && source != null)
             {
+                if (omegaDriver != null) omegaDriver.run = false; // 姿勢指示が駆動より優先 (spec 6.1 配布点)
                 source.driveFromInspector = true;
                 source.spin = false;
                 source.axis = beat.axis;
                 source.angleDeg = beat.angleDeg;
+            }
+
+            if (beat.setEulerPosture && source != null)
+            {
+                if (omegaDriver != null) omegaDriver.run = false;
+                source.driveFromInspector = false;
+                source.spin = false;
+                source.Pose = QuatMath.FromEuler(beat.eulerDeg * Mathf.Deg2Rad);
             }
 
             if (beat.setDemos)
@@ -83,6 +202,7 @@ namespace QuaternionViewer.Chapters
                 SetActive(gimbal, (beat.demos & DemoFlags.Gimbal) != 0);
                 SetActive(race, (beat.demos & DemoFlags.Interp) != 0);
                 SetActive(graph, (beat.demos & DemoFlags.Graph) != 0);
+                SetActive(twinDice, (beat.demos & DemoFlags.TwinDice) != 0);
             }
 
             if (beat.setBallModel && ball != null && ball.model != beat.ballModel)
@@ -96,7 +216,7 @@ namespace QuaternionViewer.Chapters
 
             if (beat.setHighlight && readout != null) readout.Highlight(beat.highlight);
 
-            // beat.setCamera は適用先 (フレーミング補間) の実装待ち。台本側の宣言は既に立ててある。
+            if (beat.setCamera && framer != null) framer.Frame(beat.camera);
 
             foreach (string actionName in beat.actions)
             {

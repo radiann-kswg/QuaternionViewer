@@ -160,6 +160,20 @@ namespace QuaternionViewer.Input
             source.driveFromInspector = true;
         }
 
+        /// <summary>
+        /// 外部 (カメラ寄せ等) がカメラを動かした後、周回・ズーム状態を現在のカメラ位置へ合わせ直す。
+        /// _homeDir=(0,0,-1) 前提の閉形式で yaw/pitch を解く (既定カメラのフレーミング)。
+        /// </summary>
+        public void SyncFromCamera()
+        {
+            if (cam == null) return;
+            Vector3 offset = cam.transform.position - PivotPoint;
+            _distance = Mathf.Clamp(Mathf.Max(offset.magnitude, 0.01f), minDistance, maxDistance);
+            Vector3 dir = offset / Mathf.Max(offset.magnitude, 1e-4f);
+            _pitch = Mathf.Asin(Mathf.Clamp(dir.y, -1f, 1f)) * Mathf.Rad2Deg;
+            _yaw = Mathf.Atan2(dir.x, -dir.z) * Mathf.Rad2Deg;
+        }
+
         /// <summary>視点を初期フレーミングへ戻し、章があれば現在ビートを再適用する (R キー)。</summary>
         public void ResetView()
         {

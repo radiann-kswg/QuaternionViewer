@@ -39,9 +39,15 @@ namespace QuaternionViewer.UI
         private Label[] _compValues;
         private VisualElement[] _compFills;
         private Label _axisAngleLabel;
-        private Label _halfAngleLabel;
-        private Label _eulerLabel;
-        private Label _driftLabel;
+        private VisualElement _halfAngleRow;
+        private Label _halfCosValue;
+        private Label _halfSinValue;
+        private Label _eulerTitle;
+        private VisualElement _eulerRow;
+        private readonly Label[] _eulerValues = new Label[3];
+        private VisualElement _driftRow;
+        private Label _detEValue;
+        private Label _qNormValue;
         private Label[] _matrixCells;
         private VisualElement _matrixBox;
         private Button _matrixToggle;
@@ -75,6 +81,43 @@ namespace QuaternionViewer.UI
             l.style.unityTextAlign = TextAnchor.MiddleLeft;
             parent.Add(l);
             return l;
+        }
+
+        /// <summary>「ラベル + 右詰め数値」の 1/2 幅セルを2つ並べた固定列行を作る (桁数で位置がズレない)。</summary>
+        private static VisualElement MakePairRow(
+            VisualElement parent, string leftName, string rightName, out Label leftValue, out Label rightValue)
+        {
+            var row = new VisualElement();
+            row.style.flexDirection = FlexDirection.Row;
+            row.style.marginTop = 1f;
+            row.style.marginBottom = 1f;
+            parent.Add(row);
+            leftValue = MakePairCell(row, leftName);
+            rightValue = MakePairCell(row, rightName);
+            return row;
+        }
+
+        private static Label MakePairCell(VisualElement row, string cellName)
+        {
+            var cell = new VisualElement();
+            cell.style.flexDirection = FlexDirection.Row;
+            cell.style.width = Length.Percent(50f);
+            row.Add(cell);
+
+            var label = new Label(cellName);
+            label.style.color = TextDim;
+            label.style.fontSize = 13;
+            label.style.unityTextAlign = TextAnchor.MiddleLeft;
+            cell.Add(label);
+
+            var value = new Label();
+            value.style.flexGrow = 1f;
+            value.style.paddingRight = 12f;
+            value.style.color = TextMain;
+            value.style.fontSize = 13;
+            value.style.unityTextAlign = TextAnchor.MiddleRight;
+            cell.Add(value);
+            return value;
         }
 
         private void Build()
@@ -159,15 +202,43 @@ namespace QuaternionViewer.UI
 
             _axisAngleLabel = MakeLabel(panel, TextMain, 14);
             _axisAngleLabel.style.marginTop = 4f;
-            _halfAngleLabel = MakeLabel(panel, TextDim, 13);
-            _eulerLabel = MakeLabel(panel, TextMain, 14);
-            _driftLabel = MakeLabel(panel, TextDim, 13);
+            _halfAngleRow = MakePairRow(panel, "cos(θ/2)=w", "sin(θ/2)=|v|", out _halfCosValue, out _halfSinValue);
+
+            // オイラー角: ラベル行 + 値行の2行固定。値は 1/3 幅セルの右詰め ―― 桁数が変わっても折返し・位置ズレしない
+            _eulerTitle = MakeLabel(panel, TextMain, 14);
+            _eulerTitle.text = "Euler ZXY";
+            _eulerRow = new VisualElement();
+            _eulerRow.style.flexDirection = FlexDirection.Row;
+            panel.Add(_eulerRow);
+            string[] eulerNames = { "p", "y", "r" };
+            for (int i = 0; i < 3; i++)
+            {
+                var cell = new VisualElement();
+                cell.style.flexDirection = FlexDirection.Row;
+                cell.style.width = Length.Percent(33.3f);
+                _eulerRow.Add(cell);
+
+                var axisName = new Label(eulerNames[i]);
+                axisName.style.width = 16f;
+                axisName.style.color = TextDim;
+                axisName.style.fontSize = 13;
+                axisName.style.unityTextAlign = TextAnchor.MiddleLeft;
+                cell.Add(axisName);
+
+                var value = new Label();
+                value.style.flexGrow = 1f;
+                value.style.paddingRight = 12f;
+                value.style.color = TextMain;
+                value.style.fontSize = 14;
+                value.style.unityTextAlign = TextAnchor.MiddleRight;
+                cell.Add(value);
+                _eulerValues[i] = value;
+            }
+
+            _driftRow = MakePairRow(panel, "det E=cos(p)", "|q|−1", out _detEValue, out _qNormValue);
 
             // 幅広字体で長くなる情報行は折り返しを許す
-            foreach (Label l in new[] { _axisAngleLabel, _halfAngleLabel, _eulerLabel, _driftLabel })
-            {
-                l.style.whiteSpace = WhiteSpace.Normal;
-            }
+            _axisAngleLabel.style.whiteSpace = WhiteSpace.Normal;
 
             // 回転行列 R(q) (切替表示。仕様書 4.4)
             _matrixToggle = new Button(() =>
@@ -228,10 +299,10 @@ namespace QuaternionViewer.UI
             _styled.Clear();
             _groups[ReadoutHighlight.WXYZ] = wxyzGroup;
             _groups[ReadoutHighlight.AxisAngle] = new List<VisualElement> { _axisAngleLabel };
-            _groups[ReadoutHighlight.HalfAngle] = new List<VisualElement> { _halfAngleLabel };
-            _groups[ReadoutHighlight.Euler] = new List<VisualElement> { _eulerLabel };
-            _groups[ReadoutHighlight.DetE] = new List<VisualElement> { _driftLabel };
-            _groups[ReadoutHighlight.QNormDrift] = new List<VisualElement> { _driftLabel };
+            _groups[ReadoutHighlight.HalfAngle] = new List<VisualElement> { _halfAngleRow };
+            _groups[ReadoutHighlight.Euler] = new List<VisualElement> { _eulerTitle, _eulerRow };
+            _groups[ReadoutHighlight.DetE] = new List<VisualElement> { _driftRow };
+            _groups[ReadoutHighlight.QNormDrift] = new List<VisualElement> { _driftRow };
             _groups[ReadoutHighlight.Matrix] = new List<VisualElement> { _matrixToggle, _matrixBox };
             ApplyHighlight(_highlight);
 
@@ -314,15 +385,15 @@ namespace QuaternionViewer.UI
             // 幅広字体では1行に収まらないため、θ と n を整形2行にする (折返し任せにしない)
             _axisAngleLabel.text =
                 $"θ = {theta * Mathf.Rad2Deg:F1}°  ({theta:F4} rad)\nn = ({n.x:F2}, {n.y:F2}, {n.z:F2})";
-            // 幅広字体で折返さないよう圧縮表記 (フレーム肥大の防止)
-            _halfAngleLabel.text =
-                $"cos(θ/2)=w={Mathf.Cos(half):F4}  sin(θ/2)=|v|={Mathf.Sin(half):F4}";
+            _halfCosValue.text = Mathf.Cos(half).ToString("F4");
+            _halfSinValue.text = Mathf.Sin(half).ToString("F4");
 
             float detE = Mathf.Cos(euler.x); // det E = cos(pitch) (仕様書 3.4, 3.6-F)
-            _eulerLabel.text =
-                $"Euler ZXY: p {euler.x * Mathf.Rad2Deg:F1}° y {euler.y * Mathf.Rad2Deg:F1}° r {euler.z * Mathf.Rad2Deg:F1}°";
-            _driftLabel.text =
-                $"det E=cos(p)={detE:F4}   |q|−1={q.Norm - 1f:+0.000000;-0.000000}";
+            _eulerValues[0].text = $"{euler.x * Mathf.Rad2Deg:F1}°";
+            _eulerValues[1].text = $"{euler.y * Mathf.Rad2Deg:F1}°";
+            _eulerValues[2].text = $"{euler.z * Mathf.Rad2Deg:F1}°";
+            _detEValue.text = detE.ToString("F4");
+            _qNormValue.text = (q.Norm - 1f).ToString("+0.000000;-0.000000");
 
             float[] cells =
             {

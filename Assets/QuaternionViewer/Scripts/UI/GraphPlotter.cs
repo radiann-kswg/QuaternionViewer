@@ -1,9 +1,20 @@
+using System.Collections.Generic;
 using QuaternionViewer.Visualization;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace QuaternionViewer.UI
 {
+    /// <summary>グラフの表示モード (@action graphSpeed / graphDrift)。</summary>
+    public enum GraphMode
+    {
+        /// <summary>角速度 |ω|(t) ―― 三体補間の比較 (仕様書 5.5)。</summary>
+        AngularSpeed,
+
+        /// <summary>ノルム漂流 |q|-1 ―― 数値積分の逸脱 (仕様書 5.6)。</summary>
+        NormDrift,
+    }
+
     /// <summary>
     /// 角速度グラフ |ω|(t) (仕様書 5.5)。UI Toolkit の Painter2D によるカスタム描画 (0章の決定)。
     /// Slerp のみ水平線 (角速度一定) になる ―― それがこの計器の見せ場である。
@@ -14,8 +25,18 @@ namespace QuaternionViewer.UI
     {
         public InterpRace race;
 
+        [Tooltip("NormDrift モードの計測元 (ωドライバ)")]
+        public OmegaDriver driver;
+
+        public GraphMode mode = GraphMode.AngularSpeed;
+
         [Tooltip("グラフの横サンプル数")]
         public int samples = 64;
+
+        [Tooltip("NormDrift モードの履歴長 (フレーム)")]
+        public int driftCapacity = 240;
+
+        private readonly List<float> _drift = new List<float>();
 
         private UIDocument _doc;
         private GraphElement _graph;
@@ -155,16 +176,39 @@ namespace QuaternionViewer.UI
             }
         }
 
+        /// <summary>モードを切り替える (@action graphSpeed / graphDrift)。履歴は仕切り直す。</summary>
+        public void SetMode(GraphMode newMode)
+        {
+            mode = newMode;
+            _drift.Clear();
+        }
+
         private void Update()
         {
-            if (_graph == null || race == null) return;
-            _graph.Curves = new[]
+            if (_graph == null) return;
+
+            if (mode == GraphMode.AngularSpeed)
             {
-                race.SampleSpeeds(0, samples),
-                race.SampleSpeeds(1, samples),
-                race.SampleSpeeds(2, samples),
-            };
-            _graph.TMarker = race.t;
+                if (race == null) return;
+                if (_title != null) _title.text = "ANGULAR SPEED |ω|(t)";
+                _graph.Curves = new[]
+                {
+                    race.SampleSpeeds(0, samples),
+                    race.SampleSpeeds(1, samples),
+                    race.SampleSpeeds(2, samples),
+                };
+                _graph.TMarker = race.t;
+            }
+            else
+            {
+                if (_title != null) _title.text = "NORM DRIFT |q|-1";
+                float drift = driver != null && driver.source != null ? driver.source.Pose.Norm - 1f : 0f;
+                _drift.Add(drift);
+                if (_drift.Count > Mathf.Max(16, driftCapacity)) _drift.RemoveAt(0);
+                _graph.Curves = new[] { _drift.ToArray(), null, null };
+                _graph.TMarker = 1f;
+            }
+
             _graph.MarkDirtyRepaint();
         }
     }
