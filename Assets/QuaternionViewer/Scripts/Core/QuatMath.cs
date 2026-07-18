@@ -215,5 +215,183 @@ namespace QuaternionViewer.Core
             float yaw = Mathf.Atan2(2f * (q.x * q.z + q.w * q.y), 1f - 2f * (q.x * q.x + q.y * q.y));
             return new Vector3(pitch, yaw, roll);
         }
+
+        // ================================================================
+        // 3.6 内部数学ライブラリ (A〜I)
+        // ================================================================
+
+        /// <summary>1 + a·b がこの値を下回るとき FromToRotation を対蹠退化として扱う (仕様書 3.6-B)。</summary>
+        public const float AntipodalThreshold = 1e-6f;
+
+        /// <summary>
+        /// 3.6-A: 回転行列 R(q)。列ベクトル規約 v' = R v で、R v = q ⊗ ṽ ⊗ q* と一致する。
+        /// </summary>
+        /// <remarks>非単位入力は正規化してから変換する。R ∈ SO(3) はテストで担保する。</remarks>
+        public static Mat3 ToMatrix(Quat q)
+        {
+            Quat n = q.Normalized;
+            float x = n.x, y = n.y, z = n.z, w = n.w;
+            return new Mat3(
+                1f - 2f * (y * y + z * z), 2f * (x * y - w * z), 2f * (x * z + w * y),
+                2f * (x * y + w * z), 1f - 2f * (x * x + z * z), 2f * (y * z - w * x),
+                2f * (x * z - w * y), 2f * (y * z + w * x), 1f - 2f * (x * x + y * y));
+        }
+
+        /// <summary>与えられたベクトルに直交する単位ベクトルを一つ返す。絶対値最小成分の基底との外積から取る。</summary>
+        public static Vector3 OrthogonalTo(Vector3 a)
+        {
+            float ax = Mathf.Abs(a.x), ay = Mathf.Abs(a.y), az = Mathf.Abs(a.z);
+            Vector3 basis = ax <= ay && ax <= az ? Vector3.right
+                : ay <= az ? Vector3.up
+                : Vector3.forward;
+            return Vector3.Cross(a, basis).normalized;
+        }
+
+        /// <summary>
+        /// 3.6-B: 単位ベクトル a を b へ移す最短回転 q = normalize(1 + a·b, a×b)。
+        /// アークボール (仕様書 3.5) と同形。
+        /// </summary>
+        /// <remarks>
+        /// 退化 a ≈ -b では回転軸が一意に定まらない。これは除去可能特異点ではなく
+        /// 軸の選択が本質的に任意な縮退であり、a に直交する軸での 180° 回転へ退避する。
+        /// </remarks>
+        public static Quat FromToRotation(Vector3 from, Vector3 to)
+        {
+            Vector3 a = from.normalized;
+            Vector3 b = to.normalized;
+            if (a.sqrMagnitude < 0.5f || b.sqrMagnitude < 0.5f) return Quat.Identity;
+
+            float d = Vector3.Dot(a, b);
+            if (1f + d < AntipodalThreshold)
+            {
+                return Quat.FromScalarVector(0f, OrthogonalTo(a));
+            }
+
+            return Quat.FromScalarVector(1f + d, Vector3.Cross(a, b)).Normalized;
+        }
+
+        /// <summary>
+        /// 3.6-C: SO(3) 上の測地距離 θ = 2·arccos(|⟨q0, q1⟩|) ∈ [0, π]。
+        /// </summary>
+        /// <remarks>内積の絶対値が二重被覆の折り畳みで、Angle(q, -q) = 0 を保証する。</remarks>
+        public static float Angle(Quat q0, Quat q1)
+        {
+            float d = Mathf.Abs(Quat.Dot(q0.Normalized, q1.Normalized));
+            return 2f * Mathf.Acos(Mathf.Clamp(d, 0f, 1f));
+        }
+
+        /// <summary>
+        /// 3.6-D: 回転ベクトル r = θ·n、θ = 2·atan2(|v|, w) ∈ [0, 2π]。
+        /// </summary>
+        /// <remarks>θ &gt; π の折り返し (正準化) は行わない。畳むか否かは表示層が選ぶ (3.6-I)。</remarks>
+        public static Vector3 ToRotationVector(Quat q)
+        {
+            ToAxisAngle(q, out Vector3 axis, out float radians);
+            return radians < Quat.Epsilon ? Vector3.zero : axis * radians;
+        }
+
+        /// <summary>3.6-D: 逆変換 FromRotationVector(r) = exp(r̃/2)。|r| の回転を与える。</summary>
+        public static Quat FromRotationVector(Vector3 r) => Exp(r * 0.5f);
+
+        /// <summary>3.6-E: 単位法線 m の平面鏡映 v' = v - 2(v·m)m。</summary>
+        public static Vector3 Reflect(Vector3 v, Vector3 normal)
+        {
+            Vector3 m = normal.normalized;
+            return v - 2f * Vector3.Dot(v, m) * m;
+        }
+
+        /// <summary>
+        /// 3.6-E: 半角演示用の鏡面ペア。m1 鏡映を先、m2 鏡映を後に合成すると
+        /// FromAxisAngle(axis, radians) に一致する ―― θ/2 で交わる二枚の鏡で像は θ 回る (仕様書 5.1)。
+        /// </summary>
+        /// <param name="gaugeZero">
+        /// m1 の向きを定めるゼロ基準 (仕様書 4.2 の ĝ0)。軸に平行なら直交軸へ退避する。
+        /// </param>
+        public static void ReflectionPair(
+            Vector3 axis, float radians, Vector3 gaugeZero, out Vector3 m1, out Vector3 m2)
+        {
+            Vector3 n = axis.normalized;
+            Vector3 g = gaugeZero - Vector3.Dot(gaugeZero, n) * n;
+            m1 = g.sqrMagnitude < Quat.Epsilon * Quat.Epsilon ? OrthogonalTo(n) : g.normalized;
+            m2 = FromAxisAngle(n, radians * 0.5f).Rotate(m1);
+        }
+
+        /// <summary>
+        /// 3.6-F: ZXY 規約でオイラー角速度 (ṗitch, ẏaw, ṙoll) をワールド系角速度 ω へ写すヤコビアン E。
+        /// 列 = [R_y(y)·x̂ | ŷ | R_y(y)R_x(p)·ẑ]、det E = cos(pitch) (仕様書 3.4)。
+        /// </summary>
+        /// <remarks>
+        /// 各列は「その段の回転軸が、より外側の段によってワールドへ運ばれた先」。
+        /// pitch = ±90° では pitch 回転が roll 軸 ẑ を ∓ŷ へ倒すため、第2列 (yaw軸) と
+        /// 第3列 (roll軸) が平行になり rank が 2 へ落ちる ―― 外環と内環の軸が揃う、
+        /// ジンバルロックの絵そのものである。これは ZXY という写像の座標特異点であり、
+        /// SO(3) 上の点は何ら特異ではない。
+        /// </remarks>
+        public static Mat3 EulerRateJacobian(Vector3 eulerRadians)
+        {
+            Quat qy = FromAxisAngle(Vector3.up, eulerRadians.y);
+            Quat qyx = qy * FromAxisAngle(Vector3.right, eulerRadians.x);
+            return Mat3.FromColumns(
+                qy.Rotate(Vector3.right),
+                Vector3.up,
+                qyx.Rotate(Vector3.forward));
+        }
+
+        /// <summary>
+        /// 3.6-G: ジンバル3重リングの累積回転。外環 = q_y、中環 = q_y⊗q_x、内環 = q_y⊗q_x⊗q_z。
+        /// 内環は FromEuler と一致する (テストで担保)。
+        /// </summary>
+        public static void GimbalStages(
+            Vector3 eulerRadians, out Quat outerYaw, out Quat middlePitch, out Quat innerRoll)
+        {
+            outerYaw = FromAxisAngle(Vector3.up, eulerRadians.y);
+            middlePitch = outerYaw * FromAxisAngle(Vector3.right, eulerRadians.x);
+            innerRoll = middlePitch * FromAxisAngle(Vector3.forward, eulerRadians.z);
+        }
+
+        /// <summary>角度を (-π, π] へ折り返す。</summary>
+        public static float WrapAngle(float radians)
+        {
+            float a = Mathf.Repeat(radians + Mathf.PI, 2f * Mathf.PI) - Mathf.PI;
+            // Repeat は [0, 2π) を返すため a ∈ [-π, π)。-π は +π と同一視して閉区間 (-π, π] に揃える。
+            return a <= -Mathf.PI + 1e-7f ? Mathf.PI : a;
+        }
+
+        /// <summary>
+        /// 3.6-H: オイラー角補間。成分ごとの最短差分線形補間 e(t) = e0 + t·wrap(e1 - e0)。
+        /// Ch.5 の三体比較で Slerp / Nlerp と並走させる (仕様書 5.5)。
+        /// </summary>
+        public static Vector3 EulerInterp(Vector3 e0, Vector3 e1, float t) => new Vector3(
+            e0.x + WrapAngle(e1.x - e0.x) * t,
+            e0.y + WrapAngle(e1.y - e0.y) * t,
+            e0.z + WrapAngle(e1.z - e0.z) * t);
+
+        /// <summary>
+        /// 3.6-H: 隣接サンプルからの角速度計測 |ω| ≈ 2·|log(q(t)* ⊗ q(t+Δt))| / Δt。
+        /// Slerp 曲線でのみ一定になる (仕様書 5.5 グラフ)。
+        /// </summary>
+        public static float AngularSpeed(Quat a, Quat b, float dt)
+        {
+            if (dt <= 0f) return 0f;
+            if (Quat.Dot(a, b) < 0f) b = -b;
+            Vector3 halfDelta = Log(a.Conjugate * b);
+            return 2f * halfDelta.magnitude / dt;
+        }
+
+        /// <summary>
+        /// 3.6-I: 正準形。w &gt; 0 なら q、w &lt; 0 なら -q、w = 0 はベクトル部の先頭非零成分が正になる側。
+        /// </summary>
+        /// <remarks>
+        /// Core は演算結果を勝手に畳まない (決定)。畳むか否かは表示層が章ごとに選ぶ ――
+        /// Ch.2 は二重被覆を見せるために生の -q を表示する (仕様書 5.2)。
+        /// </remarks>
+        public static Quat Canonical(Quat q)
+        {
+            if (q.w > 0f) return q;
+            if (q.w < 0f) return -q;
+            if (q.x != 0f) return q.x > 0f ? q : -q;
+            if (q.y != 0f) return q.y > 0f ? q : -q;
+            return q.z >= 0f ? q : -q;
+        }
     }
 }
