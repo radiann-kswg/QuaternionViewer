@@ -33,13 +33,13 @@ namespace QuaternionViewer.UI
 
         public void PrevChapter() => SwitchTo(index - 1, false);
 
-        /// <summary>指定章へ切り替える (範囲外はクランプ)。force で同章でも再適用する。</summary>
+        /// <summary>指定章へ切り替える (端は周回 ―― Ch.6 の次は Ch.1)。force で同章でも再適用する。</summary>
         public void SwitchTo(int target, bool force)
         {
             if (chapters.Count == 0) return;
-            int clamped = Mathf.Clamp(target, 0, chapters.Count - 1);
-            if (!force && clamped == index) return;
-            index = clamped;
+            int wrapped = ((target % chapters.Count) + chapters.Count) % chapters.Count;
+            if (!force && wrapped == index) return;
+            index = wrapped;
             if (controller != null) controller.SetChapter(Current);
         }
     }

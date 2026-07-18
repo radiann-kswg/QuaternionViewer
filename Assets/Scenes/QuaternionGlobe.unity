@@ -524,7 +524,7 @@ MonoBehaviour:
   omegaDegPerSec: {x: 25, y: 70, z: 15}
   space: 1
   method: 0
-  normalize: 0
+  normalize: 1
   run: 0
 --- !u!1 &779047024 stripped
 GameObject:
@@ -864,6 +864,7 @@ MonoBehaviour:
   ball: {fileID: 1148178111}
   twinDice: {fileID: 389979298}
   omegaDriver: {fileID: 607755153}
+  framer: {fileID: 1777544809}
   focusMarkers: {fileID: 377961587}
   readout: {fileID: 50908031}
 --- !u!114 &1342278862
@@ -1162,8 +1163,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1427213999}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -5.75}
+  m_LocalRotation: {x: 0.024368513, y: 0, z: 0, w: 0.99970305}
+  m_LocalPosition: {x: 0, y: 0.2, z: -4.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1308,6 +1309,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1777544808}
   - component: {fileID: 1777544807}
+  - component: {fileID: 1777544809}
   m_Layer: 0
   m_Name: InputController
   m_TagString: Untagged
@@ -1352,6 +1354,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1777544809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777544806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9a39ba20a809824b8c751e8e30f7302, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.CameraFramer
+  cam: {fileID: 1427214001}
+  arcball: {fileID: 1777544807}
+  duration: 0.7
+  presets:
+  - framing: 0
+    position: {x: 0, y: 0, z: -5.75}
+    lookAt: {x: 0, y: 0, z: 0}
+  - framing: 1
+    position: {x: 0, y: 0.2, z: -4.1}
+    lookAt: {x: 0, y: 0, z: 0}
+  - framing: 2
+    position: {x: 2.5, y: 0.3, z: -3.5}
+    lookAt: {x: 3.3, y: 0, z: 0}
+  - framing: 3
+    position: {x: 0, y: 0.9, z: -4.7}
+    lookAt: {x: 0, y: 0, z: 0}
 --- !u!4 &1849059097 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4508242350755134426, guid: 2d3cd3e870a7d844a9902b0beed06c40, type: 3}

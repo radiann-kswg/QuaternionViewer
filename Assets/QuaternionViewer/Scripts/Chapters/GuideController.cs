@@ -12,7 +12,7 @@ namespace QuaternionViewer.Chapters
     /// 章 (<see cref="ChapterBase"/>) の BeatChanged を購読し、既存資産を叩くだけで新しい演出は作らない。
     /// </summary>
     /// <remarks>
-    /// setCamera の適用先 (フレーミング補間) は未実装のため現状は無操作 (フック増強フェーズで実装)。
+    /// setCamera は <see cref="CameraFramer"/> がプリセット視点へ滑らかに寄せる。
     /// 宣言で表せない特殊操作 (Ch.2 符号反転・Ch.5 補正トグル・Ch.6 ω設定) は
     /// <see cref="RegisterAction"/> で登録した名前付きアクションを @action 指示から呼ぶ。
     /// </remarks>
@@ -30,6 +30,7 @@ namespace QuaternionViewer.Chapters
         public RotationSpaceBall ball;
         public TwinDiceRig twinDice;
         public OmegaDriver omegaDriver;
+        public CameraFramer framer;
 
         [Header("「見よ」の適用先 (@focus / @highlight)")]
         public FocusMarkerRenderer focusMarkers;
@@ -215,7 +216,7 @@ namespace QuaternionViewer.Chapters
 
             if (beat.setHighlight && readout != null) readout.Highlight(beat.highlight);
 
-            // beat.setCamera は適用先 (フレーミング補間) の実装待ち。台本側の宣言は既に立ててある。
+            if (beat.setCamera && framer != null) framer.Frame(beat.camera);
 
             foreach (string actionName in beat.actions)
             {

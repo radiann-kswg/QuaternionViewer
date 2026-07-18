@@ -121,8 +121,8 @@ namespace QuaternionViewer.UI
             _countLabel.style.marginRight = 6f;
             header.Add(_countLabel);
 
-            var bPrev = new Button(() => Active?.Prev()) { text = "<" };
-            var bNext = new Button(() => Active?.Next()) { text = ">" };
+            var bPrev = new Button(PrevStep) { text = "<" };
+            var bNext = new Button(NextStep) { text = ">" };
             _bMath = new Button(ToggleMath) { text = "MATH" };
             foreach (Button b in new[] { bPrev, bNext, _bMath })
             {
@@ -170,6 +170,39 @@ namespace QuaternionViewer.UI
             _graphVisible = false; // 再構築後は right=12 に戻っている ―― Update で現状に合わせ直す
         }
 
+        /// <summary>ビート送り。章末では次章の先頭へ流れる (章は周回 ―― 通し運転用)。</summary>
+        private void NextStep()
+        {
+            ChapterBase active = Active;
+            if (active == null) return;
+            if (navigator != null && active.CurrentIndex >= active.Beats.Count - 1)
+            {
+                navigator.NextChapter();
+                navigator.Current?.JumpTo(0);
+            }
+            else
+            {
+                active.Next();
+            }
+        }
+
+        /// <summary>ビート戻し。章頭では前章の末尾へ流れる。</summary>
+        private void PrevStep()
+        {
+            ChapterBase active = Active;
+            if (active == null) return;
+            if (navigator != null && active.CurrentIndex <= 0)
+            {
+                navigator.PrevChapter();
+                ChapterBase prev = navigator.Current;
+                if (prev != null) prev.JumpTo(prev.Beats.Count - 1);
+            }
+            else
+            {
+                active.Prev();
+            }
+        }
+
         private void ToggleMath()
         {
             _mathOpen = !_mathOpen;
@@ -194,8 +227,8 @@ namespace QuaternionViewer.UI
             if (Application.isPlaying && Keyboard.current != null)
             {
                 Keyboard kb = Keyboard.current;
-                if (kb.rightArrowKey.wasPressedThisFrame) active.Next();
-                if (kb.leftArrowKey.wasPressedThisFrame) active.Prev();
+                if (kb.rightArrowKey.wasPressedThisFrame) NextStep();
+                if (kb.leftArrowKey.wasPressedThisFrame) PrevStep();
                 if (navigator != null)
                 {
                     if (kb.downArrowKey.wasPressedThisFrame) navigator.NextChapter();
