@@ -26,6 +26,12 @@ namespace QuaternionViewer.UI
         [Tooltip("navigator 未設定時に使う単章")]
         public ChapterBase chapter;
 
+        [Tooltip("角速度グラフ (表示中は解説バーが右幅を譲って重なりを避ける)")]
+        public GraphPlotter graph;
+
+        /// <summary>グラフパネルの占有幅 (右12 + 幅300, GraphPlotter.Build) + 間隔 8。</summary>
+        private const float GraphClearance = 320f;
+
         private UIDocument _doc;
         private Label _chapterLabel;
         private Label _countLabel;
@@ -34,7 +40,9 @@ namespace QuaternionViewer.UI
         private VisualElement _mathBox;
         private VisualElement _dots;
         private Button _bMath;
+        private VisualElement _panel;
         private bool _mathOpen;
+        private bool _graphVisible;
         private int _seenRevision = -1;
         private ChapterBase _seenChapter;
 
@@ -61,6 +69,7 @@ namespace QuaternionViewer.UI
             root.Clear();
 
             var panel = new VisualElement();
+            _panel = panel;
             panel.style.position = Position.Absolute;
             panel.style.left = 12f;
             panel.style.right = 12f;
@@ -158,6 +167,7 @@ namespace QuaternionViewer.UI
 
             _seenRevision = -1;
             _seenChapter = null;
+            _graphVisible = false; // 再構築後は right=12 に戻っている ―― Update で現状に合わせ直す
         }
 
         private void ToggleMath()
@@ -169,6 +179,14 @@ namespace QuaternionViewer.UI
 
         private void Update()
         {
+            // グラフ (ANGULAR SPEED) 表示中は右幅を譲る ―― ボタンがパネルの下に潜って押せなくなるのを防ぐ
+            bool graphOn = graph != null && graph.gameObject.activeInHierarchy;
+            if (_panel != null && graphOn != _graphVisible)
+            {
+                _graphVisible = graphOn;
+                _panel.style.right = graphOn ? GraphClearance : 12f;
+            }
+
             ChapterBase active = Active;
             if (active == null || _chapterLabel == null) return;
 

@@ -294,8 +294,8 @@ MonoBehaviour:
   ball: {fileID: 1148178111}
   startAxis: {x: 0, y: 1, z: 0}
   startAngleDeg: 10
-  endAxis: {x: 0, y: 1, z: 0}
-  endAngleDeg: 18
+  endAxis: {x: 1, y: 2, z: 0.5}
+  endAngleDeg: 170
   shortestPath: 1
   t: 0.35
   run: 1
@@ -761,6 +761,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.GuideBarUI
   navigator: {fileID: 1342278865}
   chapter: {fileID: 1342278862}
+  graph: {fileID: 1627714552}
 --- !u!114 &1342278861
 MonoBehaviour:
   m_ObjectHideFlags: 0
