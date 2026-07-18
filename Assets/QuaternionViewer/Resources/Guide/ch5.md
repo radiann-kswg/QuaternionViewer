@@ -11,6 +11,7 @@
 @focus ball
 @action interpCorrectionOn
 @action interpDefaultEnds
+@action graphSpeed
 
 ### 直感
 姿勢Aから姿勢Bへ、三つのやり方で同時に補間する。Slerp (teal)、Nlerp (orange)、オイラー角補間 (magenta)。外殻ボールに三本の軌跡が描かれ、三体のマーカーが並走する。

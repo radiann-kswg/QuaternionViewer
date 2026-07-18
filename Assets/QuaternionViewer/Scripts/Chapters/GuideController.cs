@@ -29,6 +29,7 @@ namespace QuaternionViewer.Chapters
         public GraphPlotter graph;
         public RotationSpaceBall ball;
         public TwinDiceRig twinDice;
+        public OmegaDriver omegaDriver;
 
         [Header("「見よ」の適用先 (@focus / @highlight)")]
         public FocusMarkerRenderer focusMarkers;
@@ -93,6 +94,40 @@ namespace QuaternionViewer.Chapters
                 if (source != null) source.spin = false;
             });
 
+            // Ch.6: ω ドライバ (仕様書 5.6)。姿勢指示のあるビートへ移ると Apply が run を切る
+            RegisterAction("omegaOn", () =>
+            {
+                if (omegaDriver != null) omegaDriver.run = true;
+            });
+            RegisterAction("omegaOff", () =>
+            {
+                if (omegaDriver != null) omegaDriver.run = false;
+            });
+            RegisterAction("omegaWorld", () =>
+            {
+                if (omegaDriver != null) omegaDriver.space = AngularVelocitySpace.World;
+            });
+            RegisterAction("omegaBody", () =>
+            {
+                if (omegaDriver != null) omegaDriver.space = AngularVelocitySpace.Body;
+            });
+            RegisterAction("normalizeOn", () =>
+            {
+                if (omegaDriver != null) omegaDriver.normalize = true;
+            });
+            RegisterAction("normalizeOff", () =>
+            {
+                if (omegaDriver != null) omegaDriver.normalize = false;
+            });
+            RegisterAction("graphSpeed", () =>
+            {
+                if (graph != null) graph.SetMode(GraphMode.AngularSpeed);
+            });
+            RegisterAction("graphDrift", () =>
+            {
+                if (graph != null) graph.SetMode(GraphMode.NormDrift);
+            });
+
             // Ch.5: 最短経路補正トグル (spec 3.2 / 5.5)
             RegisterAction("interpCorrectionOn", () =>
             {
@@ -145,6 +180,7 @@ namespace QuaternionViewer.Chapters
 
             if (beat.setPosture && source != null)
             {
+                if (omegaDriver != null) omegaDriver.run = false; // 姿勢指示が駆動より優先 (spec 6.1 配布点)
                 source.driveFromInspector = true;
                 source.spin = false;
                 source.axis = beat.axis;
@@ -153,6 +189,7 @@ namespace QuaternionViewer.Chapters
 
             if (beat.setEulerPosture && source != null)
             {
+                if (omegaDriver != null) omegaDriver.run = false;
                 source.driveFromInspector = false;
                 source.spin = false;
                 source.Pose = QuatMath.FromEuler(beat.eulerDeg * Mathf.Deg2Rad);

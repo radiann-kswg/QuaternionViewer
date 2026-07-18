@@ -468,6 +468,7 @@ GameObject:
   m_Component:
   - component: {fileID: 607755152}
   - component: {fileID: 607755151}
+  - component: {fileID: 607755153}
   m_Layer: 0
   m_Name: RotationSource
   m_TagString: Untagged
@@ -507,6 +508,24 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &607755153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 607755150}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6231671180939c94b8814ecb5cb9342a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Visualization.OmegaDriver
+  source: {fileID: 607755151}
+  omegaDegPerSec: {x: 25, y: 70, z: 15}
+  space: 1
+  method: 0
+  normalize: 0
+  run: 0
 --- !u!1 &779047024 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5809554111187947782, guid: 4d3f276431390e440a8120682dda4765, type: 3}
@@ -844,6 +863,7 @@ MonoBehaviour:
   graph: {fileID: 1627714552}
   ball: {fileID: 1148178111}
   twinDice: {fileID: 389979298}
+  omegaDriver: {fileID: 607755153}
   focusMarkers: {fileID: 377961587}
   readout: {fileID: 50908031}
 --- !u!114 &1342278862
@@ -1231,7 +1251,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.GraphPlotter
   race: {fileID: 348200249}
+  driver: {fileID: 607755153}
+  mode: 1
   samples: 64
+  driftCapacity: 240
 --- !u!114 &1627714553
 MonoBehaviour:
   m_ObjectHideFlags: 0
