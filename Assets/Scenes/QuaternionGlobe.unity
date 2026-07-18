@@ -1026,6 +1026,60 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5415563501914014201, guid: 4d3f276431390e440a8120682dda4765, type: 3}
   m_PrefabInstance: {fileID: 7229541939360022341}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1777544806
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1777544808}
+  - component: {fileID: 1777544807}
+  m_Layer: 0
+  m_Name: InputController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1777544807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777544806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbee2eddf90e9674b9930a87af68e483, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Input.ArcballController
+  source: {fileID: 607755151}
+  pivot: {fileID: 1849059097}
+  arcballRadius: 1.5
+  cam: {fileID: 1427214001}
+  chapter: {fileID: 1342278862}
+  orbitDegPerPixel: 0.25
+  pitchLimitDeg: 80
+  zoomStep: 0.5
+  minDistance: 2.5
+  maxDistance: 12
+--- !u!4 &1777544808
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777544806}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1849059097 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4508242350755134426, guid: 2d3cd3e870a7d844a9902b0beed06c40, type: 3}
@@ -1252,3 +1306,4 @@ SceneRoots:
   - {fileID: 1627714554}
   - {fileID: 338681247}
   - {fileID: 1342278864}
+  - {fileID: 1777544808}

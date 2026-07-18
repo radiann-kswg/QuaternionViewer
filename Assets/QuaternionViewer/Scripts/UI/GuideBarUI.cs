@@ -127,6 +127,15 @@ namespace QuaternionViewer.UI
             _intuition.style.whiteSpace = WhiteSpace.Normal;
             panel.Add(_intuition);
 
+            // ── 自由探索の操作ヒント (ArcballController, 仕様書 7章) ────
+            var hint = new Label("L-DRAG ROTATE / R-DRAG ORBIT / WHEEL ZOOM / [R] RESET");
+            HudStyle.ApplyLatinFont(hint);
+            hint.style.color = HudStyle.TextDim;
+            hint.style.fontSize = 10;
+            hint.style.marginTop = 3f;
+            hint.style.alignSelf = Align.FlexEnd;
+            panel.Add(hint);
+
             _seenRevision = -1;
         }
 
