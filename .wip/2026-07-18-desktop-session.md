@@ -212,5 +212,19 @@
 - エディタ非フォーカス時は AssetDatabase.Refresh 後の**ドメインリロードが保留**される。`CompilationPipeline.RequestScriptCompilation()` → `EditorUtility.RequestScriptReload()` で強制できる。このときコンパイルエラーがコンソールへ出ないことがある → `Library/Bee/tundra.log.json` を `CS\d{4}` で grep すると確実(今回 asmdef の InputSystem 参照漏れをこれで検出)。
 
 ---
+## ✅ 自由探索の入力層 ArcballController (Desktop 44 ・ 同日続き)
+
+提督の依頼「プレゼン中も回して見え方を変えたい」を受け、`Input/ArcballController.cs` を実装 (`21855e3`)。
+
+- **アークボール (仕様書 3.5 のθ版)**: 左ドラッグ。カーソルのレイ→球面写像 `MapToSphere` (交点 or シルエット射影) → `QuatMath.FromToRotation(p0,p1)` を世界系で左乗。**掴んだ点がカーソルへ追従**。ドラッグ中は `driveFromInspector` を切り Pose 直書き、終了時に軸角へ読み戻して復帰。
+- **カメラ周回**: 右ドラッグ (pitch ±80° 制限、pivot=Globe 周り)。**ズーム**: ホイール (距離 2.5〜12)。カメラは操作するまで著者フレーミングを崩さない。
+- **R キー**: 視点リセット + 章があれば現在ビート再適用 (`ChapterBase.Reapply`) ―― section-guide §1.3 の「自由探索から同じビートへ復帰」の入口が先行して実装された形。
+- **UI 透過制御**: UIDocument 全パネルを `panel.Pick` で判定し (ルート要素は除外)、UI 上で始まった操作は儀へ流さない。
+- 解説バーに操作ヒント行 (L-DRAG ROTATE / R-DRAG ORBIT / WHEEL ZOOM / [R] RESET) を追加。
+- シーン: `InputController` GO 結線・保存済み (radius=1.5 は AxisAngleGlobe.radius から取得)。
+- テスト: `ArcballControllerTests.cs` 5本 (球面写像の交点/シルエット/単位性、θ版の追従、左乗合成)。**全72本緑**。
+- **Play モード専用**。動作の実機確認 (ドラッグの手触り・周回の向き・UI透過) は提督の目視待ち。
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg
