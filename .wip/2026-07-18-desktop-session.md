@@ -226,5 +226,18 @@
 - **Play モード専用**。動作の実機確認 (ドラッグの手触り・周回の向き・UI透過) は提督の目視待ち。
 
 ---
+## ✅ 「見よ」の指し示し ―― @focus / @highlight (Desktop 44+444 ・ 同日続き)
+
+提督のFB「解説の『〜を見よ』にマーカー表示が欲しい。MIRRORS のような加算表示の演出をリスペクトしたい」を受け、444 が設計・44 が実装 (`054ee3a`)。
+
+- **設計の芯 (444)**: §4 台本には「見よ」が17回あるのに視線を運ぶ装置が無かった。「見よ」は二種に分類される ―― **空間の名所 → @focus (新設)、計器の行 → @highlight (実装)**。MIRRORS が良かったのは儀を止めず層を足すだけだから ―― マーカーも同じ加算原理で作る。
+- **@focus**: `FocusMarkerRenderer` (Visualization)。台本名エイリアス (pole+/pole-/pin/pinImage/arc/ballPose/ballAntipode/core/globe/ball/mirrors/gimbal) → シーン内 GameObject を**毎フレーム名前解決** (__globe/__ball 配下は実行時再生成のため参照を保持しない)。カメラ正対の脈動リング (WireGeometry 流用・非保存・アクセント色)。**demos が「状態」なのに対しマーカーは「指差し」―― 宣言の無いビートへ移ると自動消灯**。
+- **@highlight**: `QuaternionReadout.Highlight(ReadoutHighlight)` ―― 該当行 (WXYZ 5要素/軸角/半角/Euler/detE・|q|-1/行列) へ地色+左縁のアクセント強調。set* 系の宣言に従い持続。Build 再構築でも再適用。
+- Ch.1 台本反映: ビート2 `@focus pole+ pole-` / ビート3 `@focus pin pinImage` / ビート4 `@focus mirrors`。ビート1 は @highlight WXYZ が効くようになった。
+- シーン: `FocusMarkers` GO 結線・保存済み。スモーク: ビート2でリング2本点灯→ビート1復帰で0本 (自動消灯)。テスト**76本全緑** (@focus パーサ2本+エイリアス表2本追加)。
+- **目視待ち**: リングの実寸・脈動の速さ・行強調の色味 (公開フィールド lineWidth/pulseHz/pulseAmount で調整可)。
+- 残りのうち**カメラフレーミング (@camera) だけが宣言のみ未適用**になった。次はそこか、Ch.2 台本+符号反転か。
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg
