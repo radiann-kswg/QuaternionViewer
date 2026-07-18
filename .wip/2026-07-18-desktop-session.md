@@ -258,5 +258,20 @@
 4. 角度ゲージ (Ch.1 ビート3) / 話者ノート窓 / Prefab 化検討 / リング・強調の見た目調整 (目視待ち)
 
 ---
+## ✅ 三本立て: 二体サイコロ / ωドライバ / カメラ寄せ+章周回 (Desktop 44 ・ 同日続き)
+
+提督のバグ報告2件の切り分け → ①Ch.6-4の停止=台本のspinOff(旧仕様、ωドライバ化で解消) ②Ch.6→Ch.1不遷移=クランプ仕様(周回へ改善)。以後は変更内容ごとにdevelopへコミットする運用 (提督指示)。
+
+- **421d842 ―― Ch.3 二体サイコロ (TwinDiceRig)**: Core/Diceをクローンして左右並置、X→Y / Y→X を逐次アニメ適用 (t∈[0,2]、端で静止保持、twinRestartで再走行)。アクティブ中はCoreを退避。DemoFlags.TwinDice追加、@focus twin、ch3.md演出化。ポーズ合成テスト3本。
+- **03b8a40 ―― Ch.6 完成 (OmegaDriver + NormDrift)**: dq/dt=½ω̃⊗q を毎フレーム積分してRotationSource駆動 (world/body・Euler/RK4・正規化トグル)。GraphPlotterにNormDriftモード(|q|-1履歴)。アクション: omegaOn/Off・omegaWorld/Body・normalizeOn/Off・graphSpeed/graphDrift。**姿勢指示(@posture/@euler)のあるビートへ移るとdriver.runを自動停止**(姿勢優先) ―― これが章離脱時の安全弁。ch6.md実演化 (B2でbody切替、B4は回しっぱなしで漂流が伸びる)。
+- **17bc0ed ―― @camera + 章周回**: CameraFramerが4プリセット(Overview/CoreAndGlobe/SpaceBall/Gimbal)へSmoothStep補間で寄せ、完了時にArcballController.SyncFromCamera()で周回状態を再同期。ChapterNavigatorは端で周回、ビート送りは章境界を越えて流れる ―― **→キー連打で全23ビート通し運転**。台本の全宣言が適用先を持った。
+- テスト**80本全緑**。Playモード放置でエディタ応答が止まる一幕あり(提督がフォーカス復帰で解決) ―― 結線は全て無傷、状態を安全側へ戻して(driver停止・normalize/補正on・Ch.1先頭)シーン保存済み。
+
+### 残り (次段候補)
+- Ch.6 B2のworld/body実演は入場時切替のみ ―― ビート内トグルUI(または積分器Euler/RK4切替UI)を足すか検討
+- 角度ゲージ(Ch.1 B3) / 話者ノート窓 / 自由探索復帰の明示UI / 見た目調整(リング・カメラプリセット座標は目視待ち) / Prefab化 / Ch.3のReadout二体比較
+- push・masterへの取り込みは提督判断 (AGENTS.md §6)
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg
