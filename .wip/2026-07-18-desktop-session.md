@@ -273,5 +273,12 @@
 - push・masterへの取り込みは提督判断 (AGENTS.md §6)
 
 ---
+### 追記: Ch.3 二体サイコロ不可視バグ修正 (36072a4)
+
+提督のPlay目視で発覚 ―― クローンは生成・配置・描画有効まで正常だが bounds が (0.01,0.01,0.01)、つまり**極小で見えないだけ**だった。真因: テンプレ Core/Dice の localScale は FBX インポート補正込みの **(100,100,100)** で、これを diceScale=0.72 の直接代入で上書きしていた (1m → 約7mm)。修正: `テンプレの localScale × diceScale` の比率縮小 (実測 bounds 0.72m)。
+
+**教訓 (記憶にも記録)**: FBX 由来 GO のクローンで localScale を直接代入してはならない ―― インポート補正が乗っている前提で必ず比率で操作する。実寸検証は Renderer.bounds を見るのが確実 (childCount や activeSelf では捕まらない)。
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg
