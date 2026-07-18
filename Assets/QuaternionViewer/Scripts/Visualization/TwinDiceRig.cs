@@ -86,7 +86,8 @@ namespace QuaternionViewer.Visualization
             go.hideFlags = HideFlags.DontSave;
             go.SetActive(true);
             go.transform.localPosition = new Vector3(side * separation * 0.5f, 0f, 0f);
-            go.transform.localScale = Vector3.one * diceScale;
+            // テンプレの localScale は FBX インポート補正を含む ―― 上書きせず比率で縮める
+            go.transform.localScale = diceTemplate.transform.localScale * diceScale;
             return go.transform;
         }
 

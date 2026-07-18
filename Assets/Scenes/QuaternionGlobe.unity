@@ -1508,6 +1508,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Core
       objectReference: {fileID: 0}
+    - target: {fileID: 5809554111187947782, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8335910973804514177, guid: 4d3f276431390e440a8120682dda4765, type: 3}
       propertyPath: m_IsActive
       value: 0
