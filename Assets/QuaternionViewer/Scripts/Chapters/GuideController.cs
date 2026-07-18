@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using QuaternionViewer.Core;
 using QuaternionViewer.UI;
 using QuaternionViewer.Visualization;
 using UnityEngine;
@@ -62,6 +63,72 @@ namespace QuaternionViewer.Chapters
             {
                 if (ball != null) ball.ClearTrail();
             });
+
+            // Ch.2: 符号反転 q ← -q。生の -q を配布点へ置く (Readout は正準化しない ―― spec 3.6-I)。
+            // 再入場でもう一度反転する (往復可)。ドラッグ終了時の軸角読み戻しでも符号は保存される。
+            RegisterAction("flipSign", () =>
+            {
+                if (source == null) return;
+                source.driveFromInspector = false;
+                source.spin = false;
+                source.Pose = source.Pose * -1f;
+            });
+
+            // Ch.6: 自動回転 (現状は世界系固定軸の角度積算。ω ドライバ実装までの暫定)
+            RegisterAction("spinOn", () =>
+            {
+                if (source == null) return;
+                source.driveFromInspector = true;
+                source.spin = true;
+            });
+            RegisterAction("spinOff", () =>
+            {
+                if (source != null) source.spin = false;
+            });
+
+            // Ch.5: 最短経路補正トグル (spec 3.2 / 5.5)
+            RegisterAction("interpCorrectionOn", () =>
+            {
+                if (race != null) race.shortestPath = true;
+            });
+            RegisterAction("interpCorrectionOff", () =>
+            {
+                if (race != null) race.shortestPath = false;
+            });
+
+            // Ch.5: 両端の設定 (既定 ⇄ ほぼ一致 ―― Ω→0 の除去可能特異点演示)
+            RegisterAction("interpDefaultEnds", () =>
+            {
+                if (race == null) return;
+                race.startAxis = new Vector3(0f, 1f, 0f);
+                race.startAngleDeg = 10f;
+                race.endAxis = new Vector3(1f, 2f, 0.5f);
+                race.endAngleDeg = 170f;
+            });
+            RegisterAction("interpCloseEnds", () =>
+            {
+                if (race == null) return;
+                race.endAxis = race.startAxis;
+                race.endAngleDeg = race.startAngleDeg + 8f;
+            });
+        }
+
+        /// <summary>章を切り替える (ChapterNavigator が呼ぶ)。購読を張り替えて現在ビートを適用する。</summary>
+        public void SetChapter(ChapterBase next)
+        {
+            if (chapter == next)
+            {
+                if (chapter != null) Apply(chapter.Current);
+                return;
+            }
+
+            if (chapter != null) chapter.BeatChanged -= Apply;
+            chapter = next;
+            if (chapter != null)
+            {
+                chapter.BeatChanged += Apply;
+                Apply(chapter.Current);
+            }
         }
 
         /// <summary>ビートの宣言を儀へ適用する。set* が立っていない項目は現状維持 (section-guide §1.3)。</summary>
@@ -75,6 +142,13 @@ namespace QuaternionViewer.Chapters
                 source.spin = false;
                 source.axis = beat.axis;
                 source.angleDeg = beat.angleDeg;
+            }
+
+            if (beat.setEulerPosture && source != null)
+            {
+                source.driveFromInspector = false;
+                source.spin = false;
+                source.Pose = QuatMath.FromEuler(beat.eulerDeg * Mathf.Deg2Rad);
             }
 
             if (beat.setDemos)

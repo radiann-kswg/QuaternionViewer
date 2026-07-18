@@ -22,6 +22,9 @@ namespace QuaternionViewer.Visualization
         public Vector3 endAxis = new Vector3(1f, 2f, 0.5f);
         public float endAngleDeg = 170f;
 
+        [Tooltip("Slerp の最短経路補正 (spec 3.2)。切ると <q0,q1> < 0 のとき長弧を回る ―― 二重被覆の実害 (Ch.5)")]
+        public bool shortestPath = true;
+
         [Header("走行")]
         [Range(0f, 1f)]
         [Tooltip("現在時刻 (エディタではこのスライダで走査)")]
@@ -57,7 +60,7 @@ namespace QuaternionViewer.Visualization
             Quat q1 = Q1;
             switch (index)
             {
-                case 0: return QuatMath.Slerp(q0, q1, s);
+                case 0: return QuatMath.Slerp(q0, q1, s, shortestPath);
                 case 1: return QuatMath.Nlerp(q0, q1, s);
                 default:
                     Vector3 e = QuatMath.EulerInterp(QuatMath.ToEuler(q0), QuatMath.ToEuler(q1), s);

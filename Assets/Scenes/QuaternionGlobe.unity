@@ -294,8 +294,9 @@ MonoBehaviour:
   ball: {fileID: 1148178111}
   startAxis: {x: 0, y: 1, z: 0}
   startAngleDeg: 10
-  endAxis: {x: 1, y: 2, z: 0.5}
-  endAngleDeg: 170
+  endAxis: {x: 0, y: 1, z: 0}
+  endAngleDeg: 18
+  shortestPath: 1
   t: 0.35
   run: 1
   duration: 5
@@ -733,6 +734,12 @@ GameObject:
   - component: {fileID: 1342278862}
   - component: {fileID: 1342278861}
   - component: {fileID: 1342278860}
+  - component: {fileID: 1342278870}
+  - component: {fileID: 1342278869}
+  - component: {fileID: 1342278868}
+  - component: {fileID: 1342278867}
+  - component: {fileID: 1342278866}
+  - component: {fileID: 1342278865}
   m_Layer: 0
   m_Name: GuideUI
   m_TagString: Untagged
@@ -752,6 +759,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d12ae70e39bc86c488130ef2ca6d6cdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.GuideBarUI
+  navigator: {fileID: 1342278865}
   chapter: {fileID: 1342278862}
 --- !u!114 &1342278861
 MonoBehaviour:
@@ -825,6 +833,92 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1342278865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b9eb8bc25a9fba46bfa6cbfd0703c94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.UI.ChapterNavigator
+  chapters:
+  - {fileID: 1342278862}
+  - {fileID: 1342278870}
+  - {fileID: 1342278869}
+  - {fileID: 1342278868}
+  - {fileID: 1342278867}
+  - {fileID: 1342278866}
+  controller: {fileID: 1342278861}
+  index: 0
+--- !u!114 &1342278866
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87e14b5e1651b294583b5c6c97524510, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch6_AngularVelocity
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278867
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 097a433d05adeb446b2dfdd98ac96da4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch5_Interpolation
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30833350931dc06438be15cfc32dedbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch4_GimbalLock
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5adf562fadeba94393519dab5fd1e8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch3_NonCommutativity
+  scriptAsset: {fileID: 0}
+--- !u!114 &1342278870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1342278859}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54f87b08547e9f64db9fd68db108cf27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Chapters.Ch2_DoubleCover
+  scriptAsset: {fileID: 0}
 --- !u!1 &1349001076
 GameObject:
   m_ObjectHideFlags: 0

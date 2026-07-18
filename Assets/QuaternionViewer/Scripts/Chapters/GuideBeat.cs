@@ -63,6 +63,10 @@ namespace QuaternionViewer.Chapters
         public Vector3 axis = Vector3.up;
         public float angleDeg;
 
+        /// <summary>オイラー角 (ZXY, 度) での姿勢指示 (@euler)。ジンバル章 (Ch.4) が使う。</summary>
+        public bool setEulerPosture;
+        public Vector3 eulerDeg;
+
         public bool setDemos;
         public DemoFlags demos = DemoFlags.None;
 

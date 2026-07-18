@@ -38,6 +38,7 @@ namespace QuaternionViewer.Tests
 
 ## ○ 二つ目
 @unknown hoge
+@euler 90 30 10
 
 ### 直感
 二つ目の直感
@@ -105,6 +106,16 @@ namespace QuaternionViewer.Tests
         {
             GuideBeat beat = ParseFixture(out _, out _)[0];
             Assert.That(beat.actions, Is.EqualTo(new[] { "flipSign", "clearTrail" }));
+        }
+
+        [Test]
+        public void Parse_ReadsEulerPosture()
+        {
+            GuideBeat second = ParseFixture(out _, out _)[1];
+            Assert.That(second.setEulerPosture, Is.True);
+            Assert.That(second.eulerDeg.x, Is.EqualTo(90f).Within(1e-6f));
+            Assert.That(second.eulerDeg.y, Is.EqualTo(30f).Within(1e-6f));
+            Assert.That(second.eulerDeg.z, Is.EqualTo(10f).Within(1e-6f));
         }
 
         [Test]
