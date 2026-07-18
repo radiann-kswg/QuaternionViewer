@@ -106,6 +106,9 @@ namespace QuaternionViewer.Visualization
             _antipodeGhost = WireGeometry.CreateMarker(_generated, "PoseAntipode", _ghostMat, 0.055f);
         }
 
+        /// <summary>模型写像で q をボールのローカル座標へ落とす (軌跡・三体比較デモ共用)。</summary>
+        public Vector3 MapPoint(Quat q) => MapToBall(q) * radius;
+
         /// <summary>模型写像 (仕様書 4.3)。</summary>
         private Vector3 MapToBall(Quat q)
         {
