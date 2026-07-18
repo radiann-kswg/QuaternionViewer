@@ -239,5 +239,24 @@
 - 残りのうち**カメラフレーミング (@camera) だけが宣言のみ未適用**になった。次はそこか、Ch.2 台本+符号反転か。
 
 ---
+## ✅ 全6章の解説モード化 + develop 運用開始 (Desktop 44 ・ 同日続き)
+
+提督が**アルファ公開**(パブリックリポジトリ化)。以後の作業は `develop` ブランチ ―― AGENTS.md §6 に運用を追記済み (develop=作業 / master=リリース、マージ・push は提督判断)。本節以降のコミットは develop (`a93c312`)。
+
+### 入ったもの
+- **章切替**: `UI/ChapterNavigator` (spec 6.1 必須UI) + 解説バーに章送りボタン `<< >>`、キーボード ↑↓=章 / ←→=ビート。切替時は GuideController の購読を張り替え章頭ビートを適用。
+- **Ch.2 二重被覆** (完全動作): `flipSign` アクション ―― driveFromInspector を切り生の -q を配布点へ (Readout は正準化しないので全成分反転が見える。w=∓0.696 の往復を実測)。ビート3は外殻の対蹠点+色反転を @focus ballPose/ballAntipode で指す。
+- **Ch.4 ジンバルロック** (完全動作): `@euler p y r` 指示を新設 (FromEuler 経由で Pose 直書き)。ビート2の euler(90,30,10) は ToEuler 読み戻しで (90,20,0) ―― **ロック点で yaw/roll が混合する縮退そのもの**が Readout に出る。怪我の功名ならぬ仕様の必然、プレゼンでそのまま語れる。
+- **Ch.5 補間** (完全動作): `InterpRace.shortestPath` フィールド化 (spec 3.2「トグルで切れること」) + アクション interpCorrectionOn/Off・interpDefaultEnds/interpCloseEnds (Ω→0 演示)。
+- **Ch.3 / Ch.6** (台本+部分動作): 全ビートの二層ナレーションは完成。Ch.3 の二体サイコロ並置、Ch.6 の ωドライバ (world/body・積分器)・|q|-1 グラフは未実装で、話者ノートに代替手順を注記。Ch.6 は暫定 spinOn/spinOff で連続回転を見せる (ビート3の回転ベクトル模型内の放射直線トレイルは出る)。
+- 台本 ch2〜ch6.md 転記完了 ―― **全6章23ビート** (§4.0 の勘定と一致)。テスト**77本全緑** (@euler パーサ1本追加)。シーン結線・保存済み。
+
+### 残り (次段)
+1. **二体サイコロ並置** (Ch.3 の核心2ビートの演出。DemoFlags 拡張 + TwinDiceRig + Readout 比較)
+2. **ωドライバ** (Ch.6: RotationIntegrator を回す駆動コンポーネント、world/body・Euler/RK4・正規化トグル) + **GraphPlotter |q|-1 モード**
+3. @camera (フレーミング補間 ―― 最後の宣言のみ未適用)
+4. 角度ゲージ (Ch.1 ビート3) / 話者ノート窓 / Prefab 化検討 / リング・強調の見た目調整 (目視待ち)
+
+---
 
 © ラジアン(柏木主税) / ©RadianN_kswg
