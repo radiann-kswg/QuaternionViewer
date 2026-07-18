@@ -88,7 +88,8 @@ namespace QuaternionViewer.Visualization
             Clear();
             _generated = WireGeometry.CreateContainer(transform, "__ball");
 
-            Material gridMat = WireGeometry.CreateUnlitMaterial(new Color(0.4f, 0.42f, 0.5f));
+            // 中殻の S² グリッド (中間灰) と見分けがつくよう、外殻は寒色寄りにする
+            Material gridMat = WireGeometry.CreateUnlitMaterial(new Color(0.30f, 0.42f, 0.62f));
             _markerMat = WireGeometry.CreateUnlitMaterial(warmColor);
             _ghostMat = WireGeometry.CreateUnlitMaterial(coolColor);
             _trailMat = WireGeometry.CreateUnlitMaterial(new Color(0.9f, 0.9f, 0.95f));
