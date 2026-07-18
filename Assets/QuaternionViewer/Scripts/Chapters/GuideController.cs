@@ -28,6 +28,7 @@ namespace QuaternionViewer.Chapters
         public InterpRace race;
         public GraphPlotter graph;
         public RotationSpaceBall ball;
+        public TwinDiceRig twinDice;
 
         [Header("「見よ」の適用先 (@focus / @highlight)")]
         public FocusMarkerRenderer focusMarkers;
@@ -72,6 +73,12 @@ namespace QuaternionViewer.Chapters
                 source.driveFromInspector = false;
                 source.spin = false;
                 source.Pose = source.Pose * -1f;
+            });
+
+            // Ch.3: 二体サイコロの適用アニメを頭から再走行
+            RegisterAction("twinRestart", () =>
+            {
+                if (twinDice != null) twinDice.Restart();
             });
 
             // Ch.6: 自動回転 (現状は世界系固定軸の角度積算。ω ドライバ実装までの暫定)
@@ -157,6 +164,7 @@ namespace QuaternionViewer.Chapters
                 SetActive(gimbal, (beat.demos & DemoFlags.Gimbal) != 0);
                 SetActive(race, (beat.demos & DemoFlags.Interp) != 0);
                 SetActive(graph, (beat.demos & DemoFlags.Graph) != 0);
+                SetActive(twinDice, (beat.demos & DemoFlags.TwinDice) != 0);
             }
 
             if (beat.setBallModel && ball != null && ball.model != beat.ballModel)

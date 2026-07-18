@@ -14,6 +14,7 @@ namespace QuaternionViewer.Chapters
         Gimbal = 2,
         Interp = 4,
         Graph = 8,
+        TwinDice = 16,
     }
 
     /// <summary>カメラのフレーミング指示 (section-guide §2)。適用はフック増強フェーズで実装する。</summary>

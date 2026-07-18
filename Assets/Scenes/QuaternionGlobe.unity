@@ -386,6 +386,9 @@ MonoBehaviour:
   - name: gimbal
     objectName: GimbalRig
     radius: 1.35
+  - name: twin
+    objectName: TwinDiceRig
+    radius: 1.35
 --- !u!4 &377961588
 Transform:
   m_ObjectHideFlags: 0
@@ -393,6 +396,60 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 377961586}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &389979297
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 389979299}
+  - component: {fileID: 389979298}
+  m_Layer: 0
+  m_Name: TwinDiceRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &389979298
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389979297}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b43ea49392a6fe49a2a1ba92394b6ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: QuaternionViewer::QuaternionViewer.Visualization.TwinDiceRig
+  diceTemplate: {fileID: 1363227645}
+  hideWhileActive: {fileID: 779047024}
+  axisA: {x: 1, y: 0, z: 0}
+  axisB: {x: 0, y: 1, z: 0}
+  angleDeg: 90
+  separation: 1.7
+  diceScale: 0.72
+  run: 1
+  duration: 4
+  t: 0
+--- !u!4 &389979299
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389979297}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -450,6 +507,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &779047024 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5809554111187947782, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+  m_PrefabInstance: {fileID: 7229541939360022341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &815139717
 GameObject:
   m_ObjectHideFlags: 0
@@ -781,6 +843,7 @@ MonoBehaviour:
   race: {fileID: 348200249}
   graph: {fileID: 1627714552}
   ball: {fileID: 1148178111}
+  twinDice: {fileID: 389979298}
   focusMarkers: {fileID: 377961587}
   readout: {fileID: 50908031}
 --- !u!114 &1342278862
@@ -989,6 +1052,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1363227645 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2515416400243088468, guid: 4d3f276431390e440a8120682dda4765, type: 3}
+  m_PrefabInstance: {fileID: 7229541939360022341}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1427213999
 GameObject:
   m_ObjectHideFlags: 0
@@ -1401,7 +1469,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1712834790777230626, guid: 4d3f276431390e440a8120682dda4765, type: 3}
   m_PrefabInstance: {fileID: 7229541939360022341}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 779047024}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43fa03a6757b85c47958f4c93e424d7b, type: 3}
@@ -1489,3 +1557,4 @@ SceneRoots:
   - {fileID: 1342278864}
   - {fileID: 1777544808}
   - {fileID: 377961588}
+  - {fileID: 389979299}
