@@ -176,4 +176,41 @@
 
 ---
 
+
+## ✅ 解説モード骨格 実装 (Desktop 44 ・ 2026-07-18 午後)
+
+444 の to-desktop handoff(解説・図解モード)を受けて第一段を実装、`85130d1` としてコミット済み。
+
+### 方針の追加決定(提督承認)
+- **台本の格納は Markdown テキストアセット**(`Resources/Guide/*.md`)。Unity 6 が .md を TextAsset として直接インポートできることを実機確認済み。構造は C#、文はデータ ―― SSOT(section-guide §4)との突き合わせと git 差分が効く。
+- 着手順「コミット整理 → 骨格」を提督が承認 → 未コミット分は前セッションでコミット済みと判明したため、そのまま骨格へ。
+
+### 実装分 (85130d1)
+- `Chapters/GuideBeat.cs` ―― ビート型 + DemoFlags/CameraFraming/ReadoutHighlight。**set\* フラグ方式**(指示のあった項目だけ適用、無指示は現状維持 = 順路を強制しない)
+- `Chapters/GuideScript.cs` ―― 台本 Markdown パーサ(`## ◆/○` ビート、`@posture/@demos/@ball/@camera/@highlight/@action`、`### 直感/数理/話者ノート`。未知指示は警告+無視)
+- `Chapters/ChapterBase.cs` ―― beats 保持 + Next/Prev/JumpTo + Revision(UIポーリング用)+ BeatChanged イベント
+- `Chapters/Ch1_AxisAngle.cs` / `Resources/Guide/ch1.md` ―― §4.1 の4ビート転記(数式は ^ 表記の一行式)
+- `Chapters/GuideController.cs` ―― 宣言→儀の適用器。`@action` は**名前付きアクション登録制**(UnityEvent 不採用 ―― シリアライズ不要・コード登録で符号反転等を受ける)。camera/highlight は宣言受理のみ(適用先が未実装のため)
+- `UI/GuideBarUI.cs` ―― 画面下部解説バー(HudStyle 踏襲。直感常時 + MATH 折りたたみ + 進捗ドット●○クリックジャンプ + ‹› + Play 中の ←→ キー)
+- `QuaternionViewer.asmdef` に `Unity.InputSystem` 参照を追加(キーボード送り用。ArcballController でも必要になる参照)
+- シーン: `GuideUI` GO(UIDocument + Ch1 + GuideController + GuideBarUI)を結線・保存済み
+- テスト: `GuideScriptTests.cs` 10本追加、**EditMode 全67本緑**
+
+### スモーク確認済み
+- beat0 適用で RotationSource が (1,2,0.5)/120°、beat4(鏡)で MIRRORS ON、beat0 復帰で OFF + 姿勢再適用。
+
+### 444 のフック表に無かったギャップ(要対応・44 実地調査)
+1. **Ch.3 の二体サイコロ並置が丸ごと未実装**(現 Core は1体切替構成。DemoFlags にも無い)。Ch.3 の核心ビート2本が依存。演出GO一本ぶんの新規実装。
+2. **Ch.4 ビート2「pitch→90°(アニメ)」はオイラー角駆動が要る**(`@posture` は軸角のみ)。GuideBeat に `@euler` 拡張を足すか `onEnter` へ逃がすか、実装時に選ぶ。
+
+### 残り(フック増強フェーズ)
+- カメラフレーミング / Readout 行強調 API / 符号反転(RotationSource に Pose 直接セット経路)/ InterpRace 補正トグル / GraphPlotter |q|−1 モード / ω駆動(Ch.6)/ 角度ゲージ / 二体サイコロ(Ch.3)/ 話者ノート窓 / 自由探索復帰 / ChapterNavigator(章間送り)/ Ch.2〜Ch.6 台本 md
+- 解説バーの**見た目の Game ビュー目視が未**(エディタ非フォーカスのため)。次回フォーカス時に要確認: LayerCaptionsUI との重なり。
+
+### 運用メモ(今日の新知見)
+- 「Connection revoked」の真因その2: **relay_win.exe の滞留(1日で16本)が direct 接続1席を占有**。旧 relay 掃除 + 自分の relay 再起動で復旧(接続時点で Denied が確定するため、席を空けても再接続が要る)。詳細は記憶 unity-mcp-connection に記録済み。
+- エディタ非フォーカス時は AssetDatabase.Refresh 後の**ドメインリロードが保留**される。`CompilationPipeline.RequestScriptCompilation()` → `EditorUtility.RequestScriptReload()` で強制できる。このときコンパイルエラーがコンソールへ出ないことがある → `Library/Bee/tundra.log.json` を `CS\d{4}` で grep すると確実(今回 asmdef の InputSystem 参照漏れをこれで検出)。
+
+---
+
 © ラジアン(柏木主税) / ©RadianN_kswg
