@@ -1,0 +1,18 @@
+{
+    "name": "QuaternionViewer.Editor",
+    "rootNamespace": "QuaternionViewer.Editor",
+    "references": [
+        "QuaternionViewer"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
