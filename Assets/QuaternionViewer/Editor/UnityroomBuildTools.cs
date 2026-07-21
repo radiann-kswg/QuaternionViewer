@@ -17,6 +17,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace QuaternionViewer.Editor
 {
@@ -55,7 +56,17 @@ namespace QuaternionViewer.Editor
 
             EnsureBuildScenes();
 
+            // ランタイムで Shader.Find するシェーダはビルドに同梱されないため明示的に含める。
+            // (WireGeometry.cs / HalfAngleMirrors.cs が使用。未同梱だとWebGLでモデル非表示になる)
+            EnsureAlwaysIncludedShader("Universal Render Pipeline/Unlit");
+            EnsureAlwaysIncludedShader("Unlit/Color");
+
             AssetDatabase.SaveAssets();
+
+            // GraphicsSettings/PlayerSettings など ProjectSettings/*.asset を disk へ確実に反映する。
+            // (AssetDatabase.SaveAssets は ProjectSettings をフラッシュしないため)
+            EditorApplication.ExecuteMenuItem("File/Save Project");
+
             Debug.Log(
                 $"[unityroom] WebGL設定を適用: Gzip / DecompressionFallback=OFF / {CanvasWidth}x{CanvasHeight} / " +
                 $"scenes=[{string.Join(", ", EditorBuildSettings.scenes.Select(s => s.path))}]");
@@ -104,6 +115,45 @@ namespace QuaternionViewer.Editor
                 $"  exceptionSupport       = {PlayerSettings.WebGL.exceptionSupport}\n" +
                 $"  activeBuildTarget      = {EditorUserBuildSettings.activeBuildTarget}\n" +
                 $"  scenes                 = [{string.Join(", ", EditorBuildSettings.scenes.Select(s => $"{s.path}({(s.enabled ? "on" : "off")})"))}]");
+        }
+
+        /// <summary>
+        /// GraphicsSettings の Always Included Shaders に指定シェーダを登録する (登録済みならスキップ)。
+        /// Shader.Find でランタイム取得するシェーダの WebGL ビルド同梱漏れ対策。
+        /// 注意: ProjectSettings/*.asset は AssetDatabase で読めないため、
+        /// GraphicsSettings.GetGraphicsSettings() で実体を取得して SerializedObject 化する。
+        /// 反映を disk へ確実に書き出すため、呼び出し側で File > Save Project を行うこと。
+        /// </summary>
+        private static void EnsureAlwaysIncludedShader(string shaderName)
+        {
+            Shader shader = Shader.Find(shaderName);
+            if (shader == null)
+            {
+                Debug.LogWarning($"[unityroom] シェーダが見つかりません: {shaderName}");
+                return;
+            }
+
+            var graphicsSettings = GraphicsSettings.GetGraphicsSettings();
+            var serialized = new SerializedObject(graphicsSettings);
+            SerializedProperty list = serialized.FindProperty("m_AlwaysIncludedShaders");
+            if (list == null)
+            {
+                Debug.LogError("[unityroom] m_AlwaysIncludedShaders プロパティを取得できませんでした。");
+                return;
+            }
+
+            for (int i = 0; i < list.arraySize; i++)
+            {
+                if (list.GetArrayElementAtIndex(i).objectReferenceValue == shader)
+                {
+                    return; // 登録済み
+                }
+            }
+
+            list.InsertArrayElementAtIndex(list.arraySize);
+            list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = shader;
+            serialized.ApplyModifiedProperties();
+            Debug.Log($"[unityroom] Always Included Shaders に追加: {shaderName}");
         }
 
         /// <summary>ビルド対象シーンを QuaternionGlobe に揃える (SampleScene は含めない)。</summary>
